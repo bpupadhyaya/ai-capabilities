@@ -59,6 +59,35 @@
     text-align: center;
     padding: 4px 0;
   }
+  .cache-where-link {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline dotted;
+    font-size: .72rem;
+  }
+  .cache-location-box {
+    display: none;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 10px 12px;
+    font-size: .72rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .cache-location-box.open { display: block; }
+  .cache-location-box code {
+    display: block;
+    background: rgba(0,0,0,.3);
+    border-radius: 4px;
+    padding: 4px 6px;
+    margin: 4px 0;
+    font-size: .68rem;
+    color: var(--accent);
+    word-break: break-all;
+  }
+  .cache-location-box strong { color: var(--text); }
 
   .demo-footer {
     padding: 8px 16px;
@@ -160,6 +189,19 @@
       <div class="model-info-row"><span>Size</span><span id="infoSize">—</span></div>
       <div class="model-info-row"><span>Context</span><span id="infoCtx">—</span></div>
       <div class="model-info-row"><span>Runtime</span><span>WebGPU (MLC)</span></div>
+      <div class="model-info-row">
+        <span>Cached at</span>
+        <span><span class="cache-where-link" id="cacheWhereLink">show path ▾</span></span>
+      </div>
+    </div>
+    <div class="cache-location-box" id="cacheLocationBox">
+      <strong>Chrome · macOS</strong>
+      <code>~/Library/Application Support/Google/Chrome/Default/</code>
+      <strong>Chrome · Windows</strong>
+      <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\</code>
+      <strong>Firefox · macOS</strong>
+      <code>~/Library/Caches/Firefox/Profiles/&lt;profile&gt;/</code>
+      <strong>To delete:</strong> Chrome Settings → Privacy → Site settings → [this site] → Delete data &nbsp;|&nbsp; or DevTools → Application → Storage → Clear site data
     </div>
 
     <hr class="sidebar-divider">
@@ -226,7 +268,7 @@
     <!-- Clear + cache note -->
     <div class="sidebar-section">
       <button class="btn-clear-all" id="clearBtn">🗑 Clear Conversation</button>
-      <p class="cache-note">📦 Models cached in your browser (IndexedDB). First load downloads once.</p>
+      <p class="cache-note">📦 Models cached in your browser. First load downloads once; reloading is instant.</p>
     </div>
 
   </aside>
@@ -518,6 +560,13 @@ function resetStats() {
     document.getElementById(id).textContent = "—";
   });
 }
+
+// ── Cache location toggle ──────────────────────────────────────────────────
+$("cacheWhereLink").addEventListener("click", () => {
+  const box = $("cacheLocationBox");
+  box.classList.toggle("open");
+  $("cacheWhereLink").textContent = box.classList.contains("open") ? "hide path ▴" : "show path ▾";
+});
 
 // Auto-resize textarea
 chatInput.addEventListener("input", function() {

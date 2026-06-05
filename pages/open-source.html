@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Source AI Models — AI Capabilities Catalog</title>
+  <meta name="description" content="Complete reference for open-source AI models: Llama, Gemma, Qwen, Mistral, DeepSeek, Phi and more. Free to run locally, fully offline, privacy-preserving.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="open-source.html" class="nav-link active">Open Source</a></li>
+        <li><a href="proprietary.html" class="nav-link">Proprietary</a></li>
+        <li><a href="mobile.html" class="nav-link">Mobile</a></li>
+        <li><a href="desktop.html" class="nav-link">Desktop</a></li>
+        <li><a href="datacenter.html" class="nav-link">Datacenter</a></li>
+        <li><a href="agi-roadmap.html" class="nav-link">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="../demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="../demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="../demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">Free &amp; Open Weights</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Open Source AI Models</span>
+      </h1>
+      <p class="hero-subtitle">
+        Free to download, run locally, and modify — the foundation of on-device AGI.
+        No API key, no usage fees, no data sent to third parties.
+      </p>
+      <div class="hero-actions">
+        <a href="mobile.html" class="btn btn-primary">Mobile Models</a>
+        <a href="agi-roadmap.html" class="btn btn-secondary">AGI Roadmap</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Key advantages -->
+    <section class="section">
+      <h2 class="section-title">Why Open Source?</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">🔒</div>
+          <div class="feature-card-title">Privacy by Default</div>
+          <div class="feature-card-desc">
+            Your prompts and data never leave your device. No vendor can read, log, or train on your conversations.
+            True confidentiality for personal, legal, medical, and business use.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">💰</div>
+          <div class="feature-card-title">Zero Cost at Inference</div>
+          <div class="feature-card-desc">
+            Once downloaded, inference is free. No per-token fees, no subscription, no rate limits.
+            Run a million tokens a day without a billing alert.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔧</div>
+          <div class="feature-card-title">Fully Customizable</div>
+          <div class="feature-card-desc">
+            Fine-tune on your own data with LoRA or full fine-tuning. Merge models. Change system prompts.
+            Modify tokenizers. No vendor lock-in.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">✈</div>
+          <div class="feature-card-title">Works Offline</div>
+          <div class="feature-card-desc">
+            Run in a Faraday cage, on a plane, in a basement, or in a country with internet censorship.
+            No connectivity dependency for inference.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <h2 class="section-title">Open Source Model Stats</h2>
+      <div id="stats"></div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section">
+      <h2 class="section-title">Filter &amp; Search</h2>
+      <div id="filters"></div>
+    </section>
+
+    <!-- Table -->
+    <section class="section">
+      <h2 class="section-title">Open Source Model Catalog</h2>
+      <div id="catalog"></div>
+    </section>
+
+    <!-- Getting started -->
+    <section class="section">
+      <h2 class="section-title">Get Started in 60 Seconds</h2>
+      <div class="info-box">
+        <strong>Fastest path:</strong> Install <a href="https://ollama.ai" target="_blank" rel="noopener">Ollama</a>
+        and run <code>ollama run llama3.2:3b</code> for a fully local chat model on any laptop. For mobile,
+        use <a href="https://mlc.ai/mlc-llm" target="_blank" rel="noopener">MLC LLM</a> for Android/iOS
+        or <a href="https://mediapipe.dev" target="_blank" rel="noopener">MediaPipe</a> for Gemma 3n on-device.
+        For browser-only: try the <a href="../demos/webllm/index.html">WebLLM demo</a> — zero install required.
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; Open Source Reference &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+  </footer>
+
+  <script src="../assets/js/catalog.js"></script>
+  <script>
+    Catalog.initPage({
+      jsonPath: '../data/models.json',
+      statsContainerId: 'stats',
+      tableContainerId: 'catalog',
+      filterContainerId: 'filters',
+      defaultFilters: { type: ['open-source'] },
+      columns: [
+        'name','deployment','params','context','ram_min',
+        'storage_q4','modalities','on_device','offline','privacy',
+        'quantizations','inference_engines','ollama_name','license','links'
+      ],
+      pageTitle: 'Open Source AI Models'
+    });
+  </script>
+</body>
+</html>

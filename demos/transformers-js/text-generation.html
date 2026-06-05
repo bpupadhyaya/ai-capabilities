@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Generation — Transformers.js — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  .wasm-note {
+    background: rgba(88,166,255,.07);
+    border: 1px solid rgba(88,166,255,.25);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: .82rem;
+    color: var(--text-muted);
+    margin: 10px 16px 0;
+    line-height: 1.5;
+  }
+  .wasm-note strong { color: var(--text); }
+
+  .output-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .output-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .output-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    font-size: .78rem;
+  }
+  .output-card-label { color: var(--text-muted); font-weight: 600; }
+  .output-card-body {
+    padding: 14px;
+    font-size: .88rem;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .output-card-body .new-text { color: var(--accent2); }
+
+  .generating-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: .82rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  .welcome-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 24px;
+    gap: 10px;
+  }
+  .welcome-state .wi { font-size: 3rem; }
+  .welcome-state h3 { font-size: 1rem; color: var(--text); }
+  .welcome-state p  { font-size: .83rem; max-width: 380px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html">
+      <span class="brand-icon">🧠</span> AI Capabilities
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="index.html">Transformers.js</a>
+      <a class="nav-link active" href="text-generation.html">Text Generation</a>
+      <a class="nav-link" href="embeddings.html">Embeddings</a>
+      <a class="nav-link" href="vision.html">Vision</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wasm-note" style="margin-left:0;margin-right:0;border-radius:0;border-left:none;border-right:none;border-top:none">
+  <strong>CPU / WebAssembly mode</strong> — Slower than WebGPU but works in <em>any</em> modern browser.
+  Expect 2–15 tok/s on desktop. For faster generation, try
+  <a href="../webllm/index.html">WebLLM (WebGPU)</a>.
+</div>
+
+<div class="demo-layout">
+
+  <!-- Sidebar -->
+  <aside class="demo-sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Model</div>
+      <select class="model-select" id="modelSelect">
+        <option value="Xenova/distilgpt2" selected>DistilGPT-2 (82M) ⚡ Fastest</option>
+        <option value="Xenova/gpt2">GPT-2 (124M)</option>
+        <option value="HuggingFaceTB/SmolLM2-360M-Instruct">SmolLM2 360M Instruct</option>
+        <option value="Xenova/LaMini-Flan-T5-248M">LaMini Flan-T5 248M</option>
+        <option value="Xenova/bloom-560m">BLOOM 560M (multilingual)</option>
+        <option value="Xenova/Qwen1.5-0.5B-Chat">Qwen1.5 0.5B Chat</option>
+      </select>
+      <button class="load-btn" id="loadBtn">⬇ Load Model</button>
+    </div>
+
+    <div class="sidebar-section" id="progressSection" style="display:none">
+      <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">Downloading…</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span class="status-text" id="statusText">Not loaded</span>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Generation settings -->
+    <div class="sidebar-section">
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Max New Tokens</span>
+          <span class="slider-val" id="maxTokVal">200</span>
+        </div>
+        <input type="range" id="maxTokSlider" min="20" max="500" step="10" value="200">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Temperature</span>
+          <span class="slider-val" id="tempVal">0.80</span>
+        </div>
+        <input type="range" id="tempSlider" min="0.1" max="1.5" step="0.05" value="0.8">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Repetition Penalty</span>
+          <span class="slider-val" id="repVal">1.10</span>
+        </div>
+        <input type="range" id="repSlider" min="1.0" max="2.0" step="0.05" value="1.1">
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Try These Prompts</div>
+      <div class="example-prompts">
+        <button class="example-btn" data-prompt="Once upon a time in a world where AI could think,">📖 Story starter</button>
+        <button class="example-btn" data-prompt="The most important thing about machine learning is">🤖 ML insight</button>
+        <button class="example-btn" data-prompt="In the year 2050, humanity discovered that">🚀 Future scenario</button>
+        <button class="example-btn" data-prompt="def fibonacci(n):">🐍 Code completion</button>
+        <button class="example-btn" data-prompt="The key differences between supervised and unsupervised learning are">📚 Explain AI</button>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+      <div class="token-stats-row">
+        <div class="token-stat"><span>Tokens generated</span><span id="statTokens">—</span></div>
+        <div class="token-stat"><span>Time elapsed</span><span id="statTime">—</span></div>
+      </div>
+    </div>
+
+    <button class="btn-secondary" id="clearBtn" style="width:100%;margin-top:4px;font-size:.8rem">🗑 Clear outputs</button>
+
+  </aside>
+
+  <!-- Main -->
+  <main class="demo-main">
+    <div class="chat-container">
+      <div class="output-area" id="outputArea">
+        <div class="welcome-state" id="welcomeState">
+          <div class="wi">✍️</div>
+          <h3>Text Generation with Transformers.js</h3>
+          <p>Load a model, type a prompt, and watch the model continue your text — all inside your browser using WebAssembly.</p>
+        </div>
+      </div>
+
+      <div id="generatingIndicator" class="generating-indicator" style="display:none">
+        <div class="spinner"></div>
+        <span id="genProgressText">Generating…</span>
+      </div>
+
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="promptInput"
+          placeholder="Load a model first, then type your prompt… (Enter to generate, Shift+Enter for newline)"
+          rows="2" disabled></textarea>
+        <button class="send-btn" id="generateBtn" disabled title="Generate">➤</button>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script type="module">
+import { pipeline, env } from
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+env.allowLocalModels = false;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let generator   = null;
+let isGenerating = false;
+let loadedModel  = null;
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const modelSelect   = $("modelSelect");
+const loadBtn       = $("loadBtn");
+const progSection   = $("progressSection");
+const progFill      = $("progressFill");
+const progLabel     = $("progressLabel");
+const statusDot     = $("statusDot");
+const statusText    = $("statusText");
+const maxTokSlider  = $("maxTokSlider");
+const maxTokVal     = $("maxTokVal");
+const tempSlider    = $("tempSlider");
+const tempVal       = $("tempVal");
+const repSlider     = $("repSlider");
+const repVal        = $("repVal");
+const outputArea    = $("outputArea");
+const welcomeState  = $("welcomeState");
+const genIndicator  = $("generatingIndicator");
+const genProgText   = $("genProgressText");
+const promptInput   = $("promptInput");
+const generateBtn   = $("generateBtn");
+
+// ── Sliders ────────────────────────────────────────────────────────────────
+maxTokSlider.addEventListener("input", () => maxTokVal.textContent = maxTokSlider.value);
+tempSlider.addEventListener("input",   () => tempVal.textContent  = parseFloat(tempSlider.value).toFixed(2));
+repSlider.addEventListener("input",    () => repVal.textContent   = parseFloat(repSlider.value).toFixed(2));
+
+// ── Load model ─────────────────────────────────────────────────────────────
+loadBtn.addEventListener("click", loadModel);
+
+async function loadModel() {
+  const modelId = modelSelect.value;
+  loadBtn.disabled = true;
+  progSection.style.display = "block";
+  setStatus("loading", "Downloading model…");
+
+  try {
+    generator = await pipeline("text-generation", modelId, {
+      progress_callback: (p) => {
+        if (p.status === "progress" && p.total) {
+          const pct = Math.round(p.loaded / p.total * 100);
+          progFill.style.width = pct + "%";
+          progLabel.textContent = `${p.file || "model"} — ${pct}%`;
+        } else if (p.status === "done") {
+          progLabel.textContent = p.file ? p.file + " ✓" : "Done ✓";
+        }
+      }
+    });
+
+    loadedModel = modelId;
+    progFill.style.width = "100%";
+    progLabel.textContent = "Model loaded ✓";
+    setStatus("ready", "Ready");
+    promptInput.disabled  = false;
+    generateBtn.disabled  = false;
+    promptInput.placeholder = "Type your prompt… (Enter to generate, Shift+Enter for newline)";
+    welcomeState.style.display = "none";
+    promptInput.focus();
+
+  } catch (err) {
+    setStatus("error", "Failed: " + err.message);
+    progLabel.textContent = "Error: " + err.message;
+    console.error(err);
+  } finally {
+    loadBtn.disabled = false;
+    loadBtn.textContent = loadedModel ? "🔄 Reload / Switch" : "⬇ Load Model";
+  }
+}
+
+// ── Generate ───────────────────────────────────────────────────────────────
+generateBtn.addEventListener("click", generate);
+promptInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); generate(); }
+});
+
+document.querySelectorAll(".example-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!generator || isGenerating) return;
+    promptInput.value = btn.dataset.prompt;
+    generate();
+  });
+});
+
+async function generate() {
+  if (!generator || isGenerating) return;
+  const prompt = promptInput.value.trim();
+  if (!prompt) return;
+
+  isGenerating = true;
+  generateBtn.disabled = true;
+  promptInput.disabled = true;
+  setStatus("generating", "Generating…");
+  genIndicator.style.display = "flex";
+  genProgText.textContent = "Generating…";
+
+  const startTime = performance.now();
+
+  try {
+    // Create output card placeholder
+    welcomeState.style.display = "none";
+    const card = createOutputCard(prompt, "");
+    outputArea.appendChild(card);
+    outputArea.scrollTop = outputArea.scrollHeight;
+
+    const result = await generator(prompt, {
+      max_new_tokens:    parseInt(maxTokSlider.value),
+      temperature:       parseFloat(tempSlider.value),
+      repetition_penalty: parseFloat(repSlider.value),
+      do_sample:         parseFloat(tempSlider.value) > 0,
+    });
+
+    const fullText    = result[0].generated_text;
+    const newText     = fullText.slice(prompt.length);
+    const elapsed     = ((performance.now() - startTime) / 1000).toFixed(2);
+    const tokenEst    = Math.ceil(newText.length / 4);
+
+    // Update card with result
+    const body = card.querySelector(".output-card-body");
+    body.innerHTML = escapeHtml(prompt) +
+                     '<span class="new-text">' + escapeHtml(newText) + '</span>';
+
+    // Update meta
+    const meta = card.querySelector(".output-card-meta");
+    meta.textContent = `${tokenEst} tokens · ${elapsed}s · ${(tokenEst/parseFloat(elapsed)).toFixed(1)} tok/s`;
+
+    $("statTokens").textContent = tokenEst + " (est.)";
+    $("statTime").textContent   = elapsed + "s";
+
+    promptInput.value = "";
+
+  } catch (err) {
+    console.error(err);
+    setStatus("error", err.message);
+  } finally {
+    isGenerating = false;
+    generateBtn.disabled = false;
+    promptInput.disabled = false;
+    setStatus("ready", "Ready");
+    genIndicator.style.display = "none";
+    outputArea.scrollTop = outputArea.scrollHeight;
+    promptInput.focus();
+  }
+}
+
+// ── Clear ──────────────────────────────────────────────────────────────────
+$("clearBtn").addEventListener("click", () => {
+  outputArea.innerHTML = "";
+  outputArea.appendChild(welcomeState);
+  welcomeState.style.display = generator ? "none" : "flex";
+  $("statTokens").textContent = "—";
+  $("statTime").textContent   = "—";
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function createOutputCard(prompt, result) {
+  const card = document.createElement("div");
+  card.className = "output-card";
+  card.innerHTML = `
+    <div class="output-card-header">
+      <span class="output-card-label">Generation</span>
+      <span class="output-card-meta" style="color:var(--text-dim);font-family:var(--mono)"></span>
+    </div>
+    <div class="output-card-body">${escapeHtml(prompt)}</div>`;
+  return card;
+}
+
+function setStatus(type, text) {
+  statusDot.className = "status-dot " + type;
+  statusText.textContent = text;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// Auto-resize textarea
+promptInput.addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+});
+</script>
+</body>
+</html>

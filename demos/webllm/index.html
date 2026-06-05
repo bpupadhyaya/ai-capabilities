@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebLLM Chat — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  /* Page-local tweaks */
+  .sys-prompt-textarea {
+    width: 100%;
+    height: 80px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .8rem;
+    padding: 8px 10px;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .sys-prompt-textarea:focus { border-color: var(--accent); }
+
+  .welcome-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px;
+  }
+  .welcome-msg .welcome-icon { font-size: 3rem; }
+  .welcome-msg h3 { font-size: 1rem; color: var(--text); }
+  .welcome-msg p  { font-size: .85rem; max-width: 400px; line-height: 1.6; }
+
+  .btn-clear-all {
+    width: 100%;
+    padding: 7px;
+    background: rgba(248,81,73,.1);
+    border: 1px solid rgba(248,81,73,.3);
+    border-radius: var(--radius);
+    color: var(--red);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .15s;
+  }
+  .btn-clear-all:hover { background: rgba(248,81,73,.2); }
+
+  .cache-note {
+    font-size: .72rem;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 4px 0;
+  }
+
+  .demo-footer {
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: .72rem;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html">
+      <span class="brand-icon">🧠</span> AI Capabilities
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="../../pages/">Pages</a>
+      <span class="nav-demos-label">Demos:</span>
+      <a class="nav-link active" href="index.html">WebLLM</a>
+      <a class="nav-link" href="benchmark.html">Benchmark</a>
+      <a class="nav-link" href="../transformers-js/index.html">Transformers.js</a>
+      <a class="nav-link" href="../onnx-web/index.html">ONNX Web</a>
+    </div>
+  </div>
+</nav>
+
+<!-- WebGPU warning (hidden by default, shown if needed) -->
+<div class="webgpu-warning" id="gpuWarning" style="display:none">
+  <span class="icon">⚠️</span>
+  <div>
+    <strong>WebGPU not available.</strong> This demo requires Chrome 113+ with WebGPU enabled.
+    Try opening <code>chrome://flags/#enable-unsafe-webgpu</code> or use a WebGPU-capable browser.
+    WebGPU is also available in Edge 113+ and Safari 17+ (macOS Sonoma).
+  </div>
+</div>
+
+<!-- Demo layout -->
+<div class="demo-layout">
+
+  <!-- Sidebar -->
+  <aside class="demo-sidebar">
+
+    <!-- Model selector -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Model</div>
+      <select class="model-select" id="modelSelect">
+        <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5 0.5B (~400MB) ⚡ Smallest</option>
+        <option value="Llama-3.2-1B-Instruct-q4f32_1-MLC" selected>Llama 3.2 1B (~800MB) ⚡ Fastest</option>
+        <option value="TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC">TinyLlama 1.1B (~600MB)</option>
+        <option value="SmolLM2-1.7B-Instruct-q4f16_1-MLC">SmolLM2 1.7B (~1.0GB)</option>
+        <option value="DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC">DeepSeek-R1 Distill 1.5B (~1.0GB) 🧠 Reasoning</option>
+        <option value="Qwen2.5-1.5B-Instruct-q4f32_1-MLC">Qwen2.5 1.5B (~900MB)</option>
+        <option value="gemma-2-2b-it-q4f16_1-MLC">Gemma 2 2B (~1.3GB)</option>
+        <option value="Llama-3.2-3B-Instruct-q4f32_1-MLC">Llama 3.2 3B (~1.9GB) — Good balance</option>
+        <option value="Qwen2.5-3B-Instruct-q4f32_1-MLC">Qwen2.5 3B (~1.9GB)</option>
+        <option value="Phi-3.5-mini-instruct-q4f16_1-MLC">Phi-3.5 Mini 3.8B (~2.2GB)</option>
+        <option value="Phi-3-mini-128k-instruct-q4f16_1-MLC">Phi-3 Mini 128K (~2.2GB)</option>
+        <option value="Qwen2.5-7B-Instruct-q4f16_1-MLC">Qwen2.5 7B (~4.3GB)</option>
+        <option value="Mistral-7B-Instruct-v0.3-q4f16_1-MLC">Mistral 7B v0.3 (~4.1GB)</option>
+        <option value="Llama-3.1-8B-Instruct-q4f32_1-MLC">Llama 3.1 8B (~4.7GB) — High quality</option>
+        <option value="DeepSeek-R1-Distill-Llama-8B-q4f16_1-MLC">DeepSeek-R1 Distill 8B (~4.9GB) 🧠 Reasoning</option>
+        <option value="gemma-2-9b-it-q4f16_1-MLC">Gemma 2 9B (~5.4GB)</option>
+      </select>
+      <button class="load-btn" id="loadBtn">⬇ Download &amp; Load Model</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="sidebar-section" id="progressSection" style="display:none">
+      <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">Initializing…</div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-row">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span class="status-text" id="statusText">Not loaded</span>
+    </div>
+
+    <!-- Model info -->
+    <div class="model-info-card" id="modelInfoCard">
+      <div class="model-info-row"><span>Size</span><span id="infoSize">—</span></div>
+      <div class="model-info-row"><span>Context</span><span id="infoCtx">—</span></div>
+      <div class="model-info-row"><span>Runtime</span><span>WebGPU (MLC)</span></div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- System prompt (collapsible) -->
+    <div class="sidebar-section">
+      <div class="collapsible-header" id="syspromptToggle">
+        <div class="sidebar-label">System Prompt</div>
+        <span class="collapsible-arrow" id="syspromptArrow">▶</span>
+      </div>
+      <div id="syspromptBody" style="display:none; margin-top:6px">
+        <textarea class="sys-prompt-textarea" id="systemPrompt">You are a helpful, harmless, and honest AI assistant.</textarea>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Temperature -->
+    <div class="sidebar-section">
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Temperature</span>
+          <span class="slider-val" id="tempVal">0.80</span>
+        </div>
+        <input type="range" id="tempSlider" min="0" max="1.5" step="0.05" value="0.8">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Max Tokens</span>
+          <span class="slider-val" id="maxTokVal">512</span>
+        </div>
+        <input type="range" id="maxTokSlider" min="64" max="2048" step="64" value="512">
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Token stats -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Statistics</div>
+      <div class="token-stats-row">
+        <div class="token-stat"><span>Prompt tokens</span><span id="statPrompt">—</span></div>
+        <div class="token-stat"><span>Completion tokens</span><span id="statCompletion">—</span></div>
+        <div class="token-stat"><span>Tokens / sec</span><span id="statSpeed">—</span></div>
+        <div class="token-stat"><span>Total time</span><span id="statTime">—</span></div>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Example prompts -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Try these</div>
+      <div class="example-prompts">
+        <button class="example-btn" data-prompt="Explain quantum computing simply in 3-4 sentences.">💡 Explain quantum computing simply</button>
+        <button class="example-btn" data-prompt="Write a Python function to sort a list of integers using merge sort, with a docstring.">🐍 Write a Python merge sort function</button>
+        <button class="example-btn" data-prompt="What is the best current approach toward achieving AGI? Summarize key schools of thought.">🤖 Approaches toward AGI</button>
+        <button class="example-btn" data-prompt="Summarize the key philosophical ideas about consciousness in 4 bullet points.">🧠 Key ideas about consciousness</button>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Clear + cache note -->
+    <div class="sidebar-section">
+      <button class="btn-clear-all" id="clearBtn">🗑 Clear Conversation</button>
+      <p class="cache-note">📦 Models cached in your browser (IndexedDB). First load downloads once.</p>
+    </div>
+
+  </aside>
+
+  <!-- Main chat area -->
+  <main class="demo-main">
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome-msg" id="welcomeMsg">
+          <div class="welcome-icon">🤖</div>
+          <h3>WebLLM Chat</h3>
+          <p>Select a model from the sidebar and click <strong>Download &amp; Load Model</strong> to run a large language model entirely in your browser — no server, no data sent anywhere.</p>
+          <p style="margin-top:8px; font-size:.78rem; color:var(--text-dim)">Powered by WebGPU via <a href="https://github.com/mlc-ai/web-llm" target="_blank">MLC AI Web-LLM</a>. Requires Chrome 113+.</p>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" placeholder="Load a model first, then type your message… (Enter to send, Shift+Enter for newline)" rows="1" disabled></textarea>
+        <button class="send-btn" id="sendBtn" disabled title="Send (Enter)">➤</button>
+      </div>
+    </div>
+    <div class="demo-footer">
+      <span>All inference runs locally in your browser via WebGPU — nothing is sent to any server.</span>
+      <span id="footerModel"></span>
+    </div>
+  </main>
+
+</div>
+
+<script type="module">
+import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+// ── State ──────────────────────────────────────────────────────────────────
+const MODEL_META = {
+  "Qwen2.5-0.5B-Instruct-q4f16_1-MLC":           { size: "~400 MB",  ctx: "32K"   },
+  "Llama-3.2-1B-Instruct-q4f32_1-MLC":           { size: "~800 MB",  ctx: "128K"  },
+  "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC":        { size: "~600 MB",  ctx: "2K"    },
+  "SmolLM2-1.7B-Instruct-q4f16_1-MLC":           { size: "~1.0 GB",  ctx: "8K"    },
+  "DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC":   { size: "~1.0 GB",  ctx: "32K"   },
+  "Qwen2.5-1.5B-Instruct-q4f32_1-MLC":           { size: "~900 MB",  ctx: "32K"   },
+  "gemma-2-2b-it-q4f16_1-MLC":                   { size: "~1.3 GB",  ctx: "8K"    },
+  "Llama-3.2-3B-Instruct-q4f32_1-MLC":           { size: "~1.9 GB",  ctx: "128K"  },
+  "Qwen2.5-3B-Instruct-q4f32_1-MLC":             { size: "~1.9 GB",  ctx: "32K"   },
+  "Phi-3.5-mini-instruct-q4f16_1-MLC":           { size: "~2.2 GB",  ctx: "128K"  },
+  "Phi-3-mini-128k-instruct-q4f16_1-MLC":        { size: "~2.2 GB",  ctx: "128K"  },
+  "Qwen2.5-7B-Instruct-q4f16_1-MLC":             { size: "~4.3 GB",  ctx: "32K"   },
+  "Mistral-7B-Instruct-v0.3-q4f16_1-MLC":        { size: "~4.1 GB",  ctx: "32K"   },
+  "Llama-3.1-8B-Instruct-q4f32_1-MLC":           { size: "~4.7 GB",  ctx: "128K"  },
+  "DeepSeek-R1-Distill-Llama-8B-q4f16_1-MLC":    { size: "~4.9 GB",  ctx: "128K"  },
+  "gemma-2-9b-it-q4f16_1-MLC":                   { size: "~5.4 GB",  ctx: "8K"    },
+};
+
+let engine       = null;
+let chatHistory  = [];
+let isGenerating = false;
+let loadedModel  = null;
+
+// ── DOM refs ───────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const modelSelect    = $("modelSelect");
+const loadBtn        = $("loadBtn");
+const progressSection= $("progressSection");
+const progressFill   = $("progressFill");
+const progressLabel  = $("progressLabel");
+const statusDot      = $("statusDot");
+const statusText     = $("statusText");
+const infoSize       = $("infoSize");
+const infoCtx        = $("infoCtx");
+const systemPrompt   = $("systemPrompt");
+const tempSlider     = $("tempSlider");
+const tempVal        = $("tempVal");
+const maxTokSlider   = $("maxTokSlider");
+const maxTokVal      = $("maxTokVal");
+const chatMessages   = $("chatMessages");
+const welcomeMsg     = $("welcomeMsg");
+const chatInput      = $("chatInput");
+const sendBtn        = $("sendBtn");
+const clearBtn       = $("clearBtn");
+const footerModel    = $("footerModel");
+const gpuWarning     = $("gpuWarning");
+
+// ── WebGPU check ───────────────────────────────────────────────────────────
+if (!navigator.gpu) {
+  gpuWarning.style.display = "flex";
+}
+
+// ── Slider handlers ────────────────────────────────────────────────────────
+tempSlider.addEventListener("input", () => {
+  tempVal.textContent = parseFloat(tempSlider.value).toFixed(2);
+});
+maxTokSlider.addEventListener("input", () => {
+  maxTokVal.textContent = maxTokSlider.value;
+});
+
+// ── Collapsible system prompt ──────────────────────────────────────────────
+$("syspromptToggle").addEventListener("click", () => {
+  const body  = $("syspromptBody");
+  const arrow = $("syspromptArrow");
+  const open  = body.style.display !== "none";
+  body.style.display  = open ? "none" : "block";
+  arrow.classList.toggle("open", !open);
+});
+
+// ── Model info update ──────────────────────────────────────────────────────
+function updateModelInfo(modelId) {
+  const meta = MODEL_META[modelId] || { size: "—", ctx: "—" };
+  infoSize.textContent = meta.size;
+  infoCtx.textContent  = meta.ctx;
+}
+modelSelect.addEventListener("change", () => updateModelInfo(modelSelect.value));
+updateModelInfo(modelSelect.value);
+
+// ── Load model ─────────────────────────────────────────────────────────────
+loadBtn.addEventListener("click", loadModel);
+
+async function loadModel() {
+  const modelId = modelSelect.value;
+  loadBtn.disabled = true;
+  progressSection.style.display = "block";
+  setStatus("loading", "Downloading model…");
+
+  try {
+    if (!engine) {
+      engine = new webllm.MLCEngine();
+    }
+    await engine.reload(modelId, {
+      initProgressCallback: (report) => {
+        const pct = Math.round((report.progress || 0) * 100);
+        progressFill.style.width = pct + "%";
+        progressLabel.textContent = report.text || `Loading… ${pct}%`;
+        setStatus("loading", `Loading… ${pct}%`);
+      }
+    });
+
+    loadedModel = modelId;
+    setStatus("ready", "Ready");
+    progressFill.style.width = "100%";
+    progressLabel.textContent = "Model loaded ✓";
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+    chatInput.placeholder = "Type a message… (Enter to send, Shift+Enter for newline)";
+    footerModel.textContent = modelId;
+    updateModelInfo(modelId);
+
+    // Hide welcome, focus input
+    welcomeMsg.style.display = "none";
+    chatInput.focus();
+
+  } catch (err) {
+    setStatus("error", "Load failed: " + err.message);
+    progressLabel.textContent = "Error: " + err.message;
+    console.error(err);
+  } finally {
+    loadBtn.disabled = false;
+    loadBtn.textContent = loadedModel ? "🔄 Reload / Switch Model" : "⬇ Download & Load Model";
+  }
+}
+
+// ── Send message ───────────────────────────────────────────────────────────
+sendBtn.addEventListener("click", sendMessage);
+chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// Example prompt buttons
+document.querySelectorAll(".example-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!engine || isGenerating) return;
+    chatInput.value = btn.dataset.prompt;
+    chatInput.dispatchEvent(new Event("input"));
+    sendMessage();
+  });
+});
+
+async function sendMessage() {
+  if (!engine || isGenerating) return;
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  chatInput.value = "";
+  isGenerating = true;
+  sendBtn.disabled = true;
+  chatInput.disabled = true;
+  setStatus("generating", "Generating…");
+
+  appendMessage("user", text);
+  chatHistory.push({ role: "user", content: text });
+
+  const assistantBubble = appendMessage("assistant", "");
+  const bubble = assistantBubble.querySelector(".message-bubble");
+  bubble.classList.add("typing-cursor");
+
+  const startTime = performance.now();
+  let assistantText = "";
+
+  try {
+    const stream = await engine.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt.value.trim() || "You are a helpful assistant." },
+        ...chatHistory
+      ],
+      stream: true,
+      temperature: parseFloat(tempSlider.value),
+      max_tokens:  parseInt(maxTokSlider.value),
+    });
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content || "";
+      assistantText += delta;
+      bubble.textContent = assistantText;
+      scrollToBottom();
+    }
+
+    bubble.classList.remove("typing-cursor");
+    chatHistory.push({ role: "assistant", content: assistantText });
+
+    // Stats
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+    const tokens   = assistantText.split(/\s+/).length; // rough estimate
+    try {
+      const stats = await engine.runtimeStatsText();
+      // Parse tokens/sec from stats string (format varies by version)
+      const tpsMatch = stats.match(/(\d+\.?\d*)\s*tok\/s/i);
+      const tps = tpsMatch ? tpsMatch[1] : (tokens / parseFloat(elapsed)).toFixed(1);
+      $("statSpeed").textContent = tps + " tok/s";
+    } catch (_) {
+      $("statSpeed").textContent = (tokens / parseFloat(elapsed)).toFixed(1) + " tok/s";
+    }
+    $("statPrompt").textContent     = estimateTokens(systemPrompt.value) + estimateTokens(text) + " (est.)";
+    $("statCompletion").textContent = estimateTokens(assistantText) + " (est.)";
+    $("statTime").textContent       = elapsed + "s";
+
+    // Add timestamp to meta
+    const meta = assistantBubble.querySelector(".message-meta");
+    meta.textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  } catch (err) {
+    bubble.classList.remove("typing-cursor");
+    bubble.textContent = "⚠ Error: " + err.message;
+    console.error(err);
+  } finally {
+    isGenerating = false;
+    sendBtn.disabled = false;
+    chatInput.disabled = false;
+    setStatus("ready", "Ready");
+    chatInput.focus();
+    scrollToBottom();
+  }
+}
+
+// ── Clear conversation ─────────────────────────────────────────────────────
+clearBtn.addEventListener("click", () => {
+  chatHistory = [];
+  chatMessages.innerHTML = "";
+  chatMessages.appendChild(welcomeMsg);
+  welcomeMsg.style.display = engine ? "none" : "flex";
+  if (engine) {
+    try { engine.resetChat(); } catch (_) {}
+  }
+  resetStats();
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(type, text) {
+  statusDot.className = "status-dot " + type;
+  statusText.textContent = text;
+}
+
+function appendMessage(role, content) {
+  welcomeMsg.style.display = "none";
+  const el = document.createElement("div");
+  el.className = "message " + role;
+  el.innerHTML = `<div class="message-bubble"></div><div class="message-meta"></div>`;
+  el.querySelector(".message-bubble").textContent = content;
+  chatMessages.appendChild(el);
+  scrollToBottom();
+  return el;
+}
+
+function scrollToBottom() {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function estimateTokens(text) {
+  return Math.ceil((text || "").length / 4);
+}
+
+function resetStats() {
+  ["statPrompt","statCompletion","statSpeed","statTime"].forEach(id => {
+    document.getElementById(id).textContent = "—";
+  });
+}
+
+// Auto-resize textarea
+chatInput.addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+});
+</script>
+</body>
+</html>

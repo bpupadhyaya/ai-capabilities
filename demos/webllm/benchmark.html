@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebLLM Benchmark — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  body { overflow-y: auto; }
+
+  .bench-layout {
+    display: flex;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+  }
+
+  .bench-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .bench-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+  }
+
+  .model-check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .model-check-item:hover { background: var(--bg-card2); }
+  .model-check-item input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; }
+  .model-check-item label { font-size: .82rem; color: var(--text-muted); cursor: pointer; line-height: 1.3; }
+
+  .prompt-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .prompt-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .prompt-card-name { font-size: .75rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; }
+  .prompt-card-text { font-size: .8rem; color: var(--text-muted); line-height: 1.4; }
+
+  .results-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+  }
+
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .82rem;
+    min-width: 600px;
+  }
+  .results-table thead th {
+    background: var(--bg-card2);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .results-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-dim);
+    vertical-align: middle;
+    color: var(--text);
+  }
+  .results-table tbody tr:last-child td { border-bottom: none; }
+  .results-table tbody tr:hover td { background: var(--bg-card2); }
+  .results-table td.model-col { font-weight: 600; font-size: .8rem; }
+  .results-table td.num-col { font-family: var(--mono); text-align: right; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: .7rem;
+    font-weight: 600;
+  }
+  .status-badge.pending    { background: rgba(139,148,158,.15); color: var(--text-dim); }
+  .status-badge.running    { background: rgba(88,166,255,.18); color: var(--accent); }
+  .status-badge.done       { background: rgba(63,185,80,.15); color: var(--green); }
+  .status-badge.error      { background: rgba(248,81,73,.15); color: var(--red); }
+  .status-badge.skipped    { background: rgba(210,153,34,.15); color: var(--yellow); }
+
+  .chart-section { margin-bottom: 24px; }
+  .chart-title { font-size: .85rem; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+
+  .run-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--green-dim);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .run-btn:hover:not(:disabled) { filter: brightness(1.15); }
+  .run-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .export-btn {
+    flex: 1;
+    padding: 7px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: border-color .15s, color .15s;
+  }
+  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .log-box {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--text-muted);
+    max-height: 160px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+  .log-entry { border-bottom: 1px solid var(--border-dim); padding: 2px 0; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry.info  { color: var(--accent); }
+  .log-entry.ok    { color: var(--green); }
+  .log-entry.err   { color: var(--red); }
+  .log-entry.warn  { color: var(--yellow); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html">
+      <span class="brand-icon">🧠</span> AI Capabilities
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <span class="nav-demos-label">Demos:</span>
+      <a class="nav-link" href="index.html">WebLLM Chat</a>
+      <a class="nav-link active" href="benchmark.html">Benchmark</a>
+      <a class="nav-link" href="../transformers-js/index.html">Transformers.js</a>
+      <a class="nav-link" href="../onnx-web/index.html">ONNX Web</a>
+    </div>
+  </div>
+</nav>
+
+<div class="bench-layout">
+
+  <!-- Sidebar: config -->
+  <aside class="bench-sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Select Models to Test</div>
+      <div id="modelCheckList">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Benchmark Prompts</div>
+      <div id="promptList"></div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Warmup Tokens</span>
+          <span class="slider-val" id="warmupVal">32</span>
+        </div>
+        <input type="range" id="warmupSlider" min="0" max="128" step="16" value="32">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Measure Tokens</span>
+          <span class="slider-val" id="measureVal">128</span>
+        </div>
+        <input type="range" id="measureSlider" min="64" max="512" step="64" value="128">
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <button class="run-btn" id="runBtn">▶ Run Benchmark</button>
+
+    <div class="action-row">
+      <button class="export-btn" id="exportJsonBtn">⬇ Export JSON</button>
+      <button class="export-btn" id="clearResultsBtn">🗑 Clear</button>
+    </div>
+
+  </aside>
+
+  <!-- Main: results -->
+  <main class="bench-main">
+
+    <div style="margin-bottom:20px">
+      <h1 style="font-size:1.3rem;font-weight:700;margin-bottom:6px">WebLLM Performance Benchmark</h1>
+      <p style="font-size:.85rem;color:var(--text-muted)">Compare token generation speed across WebGPU-backed LLMs. All inference runs locally in your browser.</p>
+    </div>
+
+    <div class="webgpu-warning" id="gpuWarning" style="display:none;margin:0 0 16px 0">
+      <span>⚠️</span>
+      <div><strong>WebGPU not detected.</strong> Benchmark requires Chrome 113+ with WebGPU. Results may not run correctly.</div>
+    </div>
+
+    <!-- Results table -->
+    <div class="sidebar-section" style="margin-bottom:20px">
+      <div class="sidebar-label" style="margin-bottom:8px">Results</div>
+      <div class="results-table-wrapper">
+        <table class="results-table" id="resultsTable">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th class="num-col">TTFT (ms)</th>
+              <th class="num-col">Tok/sec</th>
+              <th class="num-col">Total (ms)</th>
+              <th>Prompt</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr id="emptyRow">
+              <td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">
+                No results yet. Select models and run the benchmark.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bar charts -->
+    <div class="chart-section">
+      <div class="chart-title">Tokens / Second (higher is better)</div>
+      <div id="tpsChart"></div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">Time to First Token — ms (lower is better)</div>
+      <div id="ttftChart"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="sidebar-section">
+      <div class="sidebar-label" style="margin-bottom:6px">Run Log</div>
+      <div class="log-box" id="logBox">
+        <div class="log-entry info">Ready. Select models and click Run Benchmark.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script type="module">
+import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const MODELS = [
+  { id: "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",         label: "Qwen2.5 0.5B",        params: "0.5B"  },
+  { id: "Llama-3.2-1B-Instruct-q4f32_1-MLC",         label: "Llama 3.2 1B",         params: "1B"    },
+  { id: "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",      label: "TinyLlama 1.1B",       params: "1.1B"  },
+  { id: "SmolLM2-1.7B-Instruct-q4f16_1-MLC",         label: "SmolLM2 1.7B",         params: "1.7B"  },
+  { id: "DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC", label: "DeepSeek-R1 1.5B",     params: "1.5B"  },
+  { id: "gemma-2-2b-it-q4f16_1-MLC",                 label: "Gemma 2 2B",            params: "2B"    },
+  { id: "Llama-3.2-3B-Instruct-q4f32_1-MLC",         label: "Llama 3.2 3B",         params: "3B"    },
+  { id: "Phi-3.5-mini-instruct-q4f16_1-MLC",         label: "Phi-3.5 Mini 3.8B",    params: "3.8B"  },
+  { id: "Qwen2.5-7B-Instruct-q4f16_1-MLC",           label: "Qwen2.5 7B",           params: "7B"    },
+  { id: "Mistral-7B-Instruct-v0.3-q4f16_1-MLC",      label: "Mistral 7B",           params: "7B"    },
+  { id: "Llama-3.1-8B-Instruct-q4f32_1-MLC",         label: "Llama 3.1 8B",         params: "8B"    },
+];
+
+const PROMPTS = [
+  { id: "short",  name: "Short",  text: "What is 2+2?" },
+  { id: "medium", name: "Medium", text: "Explain the concept of machine learning in 3 sentences." },
+  { id: "long",   name: "Long",   text: "Write a detailed 5-paragraph essay on the importance of privacy in the age of AI." },
+  { id: "code",   name: "Code",   text: "Write a Python function that implements binary search with type hints and docstring." },
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let results = loadSavedResults();
+let running = false;
+let engine  = null;
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+if (!navigator.gpu) $("gpuWarning").style.display = "flex";
+
+// Populate model checkboxes
+const checkList = $("modelCheckList");
+MODELS.forEach(m => {
+  const row = document.createElement("div");
+  row.className = "model-check-item";
+  const cb = document.createElement("input");
+  cb.type = "checkbox";
+  cb.id = "cb_" + m.id;
+  cb.value = m.id;
+  // Pre-check small models
+  if (["Qwen2.5-0.5B-Instruct-q4f16_1-MLC", "Llama-3.2-1B-Instruct-q4f32_1-MLC"].includes(m.id)) {
+    cb.checked = true;
+  }
+  const lbl = document.createElement("label");
+  lbl.htmlFor = "cb_" + m.id;
+  lbl.textContent = m.label + " (" + m.params + ")";
+  row.appendChild(cb); row.appendChild(lbl);
+  checkList.appendChild(row);
+});
+
+// Populate prompt cards
+const promptList = $("promptList");
+PROMPTS.forEach(p => {
+  const card = document.createElement("div");
+  card.className = "prompt-card";
+  card.innerHTML = `
+    <div class="prompt-card-header">
+      <span class="prompt-card-name">${p.name}</span>
+    </div>
+    <div class="prompt-card-text">${p.text}</div>`;
+  promptList.appendChild(card);
+});
+
+// Sliders
+$("warmupSlider").addEventListener("input", () => { $("warmupVal").textContent = $("warmupSlider").value; });
+$("measureSlider").addEventListener("input", () => { $("measureVal").textContent = $("measureSlider").value; });
+
+// Render saved results on load
+renderResults();
+
+// ── Run Benchmark ──────────────────────────────────────────────────────────
+$("runBtn").addEventListener("click", runBenchmark);
+
+async function runBenchmark() {
+  if (running) return;
+
+  const selectedModels = MODELS.filter(m => {
+    const cb = document.getElementById("cb_" + m.id);
+    return cb && cb.checked;
+  });
+
+  if (selectedModels.length === 0) {
+    log("warn", "Select at least one model to benchmark.");
+    return;
+  }
+
+  running = true;
+  $("runBtn").disabled = true;
+  $("runBtn").textContent = "⏳ Running…";
+
+  const measureTokens = parseInt($("measureSlider").value);
+
+  for (const model of selectedModels) {
+    for (const prompt of PROMPTS) {
+      const rowId = model.id + "_" + prompt.id;
+      upsertResultRow(rowId, model.label, prompt.name, "running", null, null, null);
+      log("info", `Loading ${model.label}…`);
+
+      try {
+        // Load/reload model
+        if (!engine) engine = new webllm.MLCEngine();
+        await engine.reload(model.id, {
+          initProgressCallback: (r) => {
+            const pct = Math.round((r.progress || 0) * 100);
+            log("info", `  ${model.label}: ${pct}%`);
+          }
+        });
+        await engine.resetChat();
+
+        log("info", `Running prompt [${prompt.name}] on ${model.label}…`);
+
+        const messages = [
+          { role: "system", content: "You are a helpful assistant. Be concise." },
+          { role: "user",   content: prompt.text }
+        ];
+
+        const t0 = performance.now();
+        let ttft = null;
+        let tokenCount = 0;
+
+        const stream = await engine.chat.completions.create({
+          messages,
+          stream: true,
+          temperature: 0.0, // greedy for reproducibility
+          max_tokens: measureTokens,
+        });
+
+        for await (const chunk of stream) {
+          const delta = chunk.choices[0]?.delta?.content || "";
+          if (delta && ttft === null) { ttft = performance.now() - t0; }
+          if (delta) tokenCount += delta.split(/\s+/).filter(Boolean).length;
+        }
+
+        const totalMs = performance.now() - t0;
+        const tps = (tokenCount / (totalMs / 1000)).toFixed(1);
+        const ttftMs = ttft ? Math.round(ttft) : 0;
+
+        const r = { rowId, model: model.label, prompt: prompt.name,
+                    ttft: ttftMs, tps: parseFloat(tps), totalMs: Math.round(totalMs),
+                    status: "done", ts: Date.now() };
+        saveResult(r);
+        upsertResultRow(rowId, model.label, prompt.name, "done", ttftMs, tps, Math.round(totalMs));
+        log("ok", `  Done: ${tps} tok/s, TTFT ${ttftMs}ms`);
+
+      } catch (err) {
+        upsertResultRow(rowId, model.label, prompt.name, "error", null, null, null);
+        log("err", `  Error: ${err.message}`);
+        console.error(err);
+      }
+    }
+  }
+
+  running = false;
+  $("runBtn").disabled = false;
+  $("runBtn").textContent = "▶ Run Benchmark";
+  log("ok", "Benchmark complete.");
+  renderCharts();
+}
+
+// ── Results table ──────────────────────────────────────────────────────────
+function upsertResultRow(rowId, model, prompt, status, ttft, tps, total) {
+  $("emptyRow").style.display = "none";
+  let row = document.getElementById("row_" + rowId);
+  if (!row) {
+    row = document.createElement("tr");
+    row.id = "row_" + rowId;
+    $("resultsBody").appendChild(row);
+  }
+
+  const badgeClass = { running: "running", done: "done", error: "error", pending: "pending" }[status] || "pending";
+  row.innerHTML = `
+    <td class="model-col">${model}</td>
+    <td class="num-col">${ttft != null ? ttft : "—"}</td>
+    <td class="num-col">${tps  != null ? tps  : "—"}</td>
+    <td class="num-col">${total != null ? total : "—"}</td>
+    <td style="font-size:.78rem;color:var(--text-muted)">${prompt}</td>
+    <td><span class="status-badge ${badgeClass}">${status}</span></td>
+  `;
+}
+
+// ── Charts ─────────────────────────────────────────────────────────────────
+function renderCharts() {
+  const saved = loadSavedResults();
+
+  // Group by model: average tps and ttft across prompts
+  const byModel = {};
+  saved.forEach(r => {
+    if (!byModel[r.model]) byModel[r.model] = { tpsSum: 0, ttftSum: 0, count: 0 };
+    byModel[r.model].tpsSum  += r.tps   || 0;
+    byModel[r.model].ttftSum += r.ttft  || 0;
+    byModel[r.model].count++;
+  });
+
+  const models  = Object.keys(byModel);
+  const avgTps  = models.map(m => byModel[m].tpsSum  / byModel[m].count);
+  const avgTtft = models.map(m => byModel[m].ttftSum / byModel[m].count);
+
+  const maxTps  = Math.max(...avgTps,  1);
+  const maxTtft = Math.max(...avgTtft, 1);
+
+  const tpsChart  = $("tpsChart");
+  const ttftChart = $("ttftChart");
+  tpsChart.innerHTML  = "";
+  ttftChart.innerHTML = "";
+
+  models.forEach((model, i) => {
+    const tps  = avgTps[i];
+    const ttft = avgTtft[i];
+
+    const tpsRow = document.createElement("div");
+    tpsRow.className = "bench-bar-row";
+    tpsRow.innerHTML = `
+      <div class="bench-bar-label" title="${model}">${model}</div>
+      <div class="bench-bar-track"><div class="bench-bar-fill" style="width:${(tps/maxTps*100).toFixed(1)}%"></div></div>
+      <div class="bench-bar-value">${tps.toFixed(1)} tok/s</div>`;
+    tpsChart.appendChild(tpsRow);
+
+    const ttftRow = document.createElement("div");
+    ttftRow.className = "bench-bar-row";
+    ttftRow.innerHTML = `
+      <div class="bench-bar-label" title="${model}">${model}</div>
+      <div class="bench-bar-track"><div class="bench-bar-fill" style="width:${(ttft/maxTtft*100).toFixed(1)}%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+      <div class="bench-bar-value">${ttft.toFixed(0)} ms</div>`;
+    ttftChart.appendChild(ttftRow);
+  });
+}
+
+// Render saved results into table + chart on page load
+function renderResults() {
+  const saved = loadSavedResults();
+  if (saved.length === 0) return;
+  $("emptyRow").style.display = "none";
+  saved.forEach(r => {
+    upsertResultRow(r.rowId, r.model, r.prompt, r.status, r.ttft, r.tps, r.totalMs);
+  });
+  renderCharts();
+}
+
+// ── Persistence ────────────────────────────────────────────────────────────
+function saveResult(r) {
+  const all = loadSavedResults();
+  const idx = all.findIndex(x => x.rowId === r.rowId);
+  if (idx >= 0) all[idx] = r; else all.push(r);
+  try { localStorage.setItem("webllm_bench", JSON.stringify(all)); } catch (_) {}
+}
+
+function loadSavedResults() {
+  try { return JSON.parse(localStorage.getItem("webllm_bench") || "[]"); } catch (_) { return []; }
+}
+
+$("clearResultsBtn").addEventListener("click", () => {
+  try { localStorage.removeItem("webllm_bench"); } catch (_) {}
+  results = [];
+  $("resultsBody").innerHTML = `<tr id="emptyRow"><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">No results yet. Select models and run the benchmark.</td></tr>`;
+  $("tpsChart").innerHTML   = "";
+  $("ttftChart").innerHTML  = "";
+  log("info", "Results cleared.");
+});
+
+$("exportJsonBtn").addEventListener("click", () => {
+  const data = loadSavedResults();
+  if (!data.length) { log("warn", "No results to export."); return; }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "webllm-benchmark-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  log("ok", "Exported " + data.length + " result(s) as JSON.");
+});
+
+// ── Log helper ─────────────────────────────────────────────────────────────
+function log(type, msg) {
+  const box  = $("logBox");
+  const line = document.createElement("div");
+  line.className = "log-entry " + type;
+  line.textContent = "[" + new Date().toLocaleTimeString() + "] " + msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+  // Keep only last 200 lines
+  while (box.children.length > 200) box.removeChild(box.firstChild);
+}
+</script>
+</body>
+</html>

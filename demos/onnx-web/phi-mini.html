@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phi-3 Mini — ONNX Runtime Web — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  /* Inherit demo-layout from shared CSS */
+  .sys-prompt-textarea {
+    width: 100%;
+    height: 80px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .8rem;
+    padding: 8px 10px;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .sys-prompt-textarea:focus { border-color: var(--accent); }
+
+  .welcome-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 24px;
+    gap: 12px;
+  }
+  .welcome-state .wi { font-size: 3rem; }
+  .welcome-state h3  { font-size: 1rem; color: var(--text); }
+  .welcome-state p   { font-size: .83rem; max-width: 460px; line-height: 1.6; }
+
+  .tensor-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+  }
+  .tensor-info-table th {
+    background: var(--bg-card2);
+    color: var(--text-muted);
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .tensor-info-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-dim);
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--text-muted);
+  }
+  .tensor-info-table tr:last-child td { border-bottom: none; }
+
+  .model-approach-card {
+    background: rgba(88,166,255,.06);
+    border: 1px solid rgba(88,166,255,.2);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    font-size: .82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .model-approach-card strong { color: var(--text); }
+  .model-approach-card ol { padding-left: 18px; margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+
+  .btn-clear-all {
+    width: 100%;
+    padding: 7px;
+    background: rgba(248,81,73,.1);
+    border: 1px solid rgba(248,81,73,.3);
+    border-radius: var(--radius);
+    color: var(--red);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .15s;
+  }
+  .btn-clear-all:hover { background: rgba(248,81,73,.2); }
+
+  .demo-footer {
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: .72rem;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html"><span class="brand-icon">🧠</span> AI Capabilities</a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="index.html">ONNX Web</a>
+      <a class="nav-link active" href="phi-mini.html">Phi-3 Mini Chat</a>
+      <a class="nav-link" href="../webllm/index.html">WebLLM</a>
+      <a class="nav-link" href="../transformers-js/index.html">Transformers.js</a>
+    </div>
+  </div>
+</nav>
+
+<div class="demo-layout">
+
+  <!-- Sidebar -->
+  <aside class="demo-sidebar">
+
+    <!-- Model + provider -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Model</div>
+      <select class="model-select" id="modelSelect">
+        <option value="phi3-mini-transformers" selected>Phi-3 Mini 4K (via Transformers.js)</option>
+        <option value="phi3-onnx-direct" disabled>Phi-3 Mini ONNX Direct (server required)</option>
+      </select>
+    </div>
+
+    <!-- Provider toggle -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Execution Provider</div>
+      <div class="provider-toggle">
+        <button class="provider-btn active" id="btnWASM" data-prov="wasm">WASM (CPU)</button>
+        <button class="provider-btn" id="btnWebGPU" data-prov="webgpu">WebGPU</button>
+      </div>
+      <div style="font-size:.72rem;color:var(--text-dim);margin-top:3px" id="providerNote">
+        WASM: ~1 tok/s · WebGPU: ~15 tok/s (requires Chrome 113+)
+      </div>
+    </div>
+
+    <button class="load-btn" id="loadBtn">⬇ Load Phi-3 Mini</button>
+
+    <!-- Progress -->
+    <div class="sidebar-section" id="progressSection" style="display:none">
+      <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">Downloading…</div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-row">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span class="status-text" id="statusText">Not loaded</span>
+    </div>
+
+    <!-- Model info -->
+    <div class="model-info-card">
+      <div class="model-info-row"><span>Model</span><span>Phi-3-mini-4k</span></div>
+      <div class="model-info-row"><span>Params</span><span>3.8B</span></div>
+      <div class="model-info-row"><span>Context</span><span>4K tokens</span></div>
+      <div class="model-info-row"><span>Runtime</span><span id="runtimeLabel">WASM / Transformers.js</span></div>
+      <div class="model-info-row"><span>Est. size</span><span>~2.2 GB</span></div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- System prompt -->
+    <div class="sidebar-section">
+      <div class="collapsible-header" id="syspromptToggle">
+        <div class="sidebar-label">System Prompt</div>
+        <span class="collapsible-arrow" id="syspromptArrow">▶</span>
+      </div>
+      <div id="syspromptBody" style="display:none;margin-top:6px">
+        <textarea class="sys-prompt-textarea" id="systemPrompt">You are Phi, a helpful and concise AI assistant by Microsoft.</textarea>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Generation params -->
+    <div class="sidebar-section">
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Temperature</span>
+          <span class="slider-val" id="tempVal">0.70</span>
+        </div>
+        <input type="range" id="tempSlider" min="0.0" max="1.5" step="0.05" value="0.7">
+      </div>
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="sidebar-label">Max New Tokens</span>
+          <span class="slider-val" id="maxTokVal">256</span>
+        </div>
+        <input type="range" id="maxTokSlider" min="32" max="1024" step="32" value="256">
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Stats -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Statistics</div>
+      <div class="token-stats-row">
+        <div class="token-stat"><span>Provider used</span><span id="statProvider">—</span></div>
+        <div class="token-stat"><span>Tokens generated</span><span id="statTokens">—</span></div>
+        <div class="token-stat"><span>Time</span><span id="statTime">—</span></div>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Example prompts -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Try These</div>
+      <div class="example-prompts">
+        <button class="example-btn" data-prompt="Explain the difference between supervised and unsupervised learning in 3 sentences.">🤖 Supervised vs unsupervised</button>
+        <button class="example-btn" data-prompt="Write a Python function that checks if a string is a palindrome.">🐍 Palindrome checker</button>
+        <button class="example-btn" data-prompt="What makes Phi-3 Mini different from larger language models?">💡 About Phi-3</button>
+        <button class="example-btn" data-prompt="Summarize the key benefits of ONNX Runtime in 4 bullet points.">📋 ONNX benefits</button>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <button class="btn-clear-all" id="clearBtn">🗑 Clear Conversation</button>
+    <p style="font-size:.71rem;color:var(--text-dim);text-align:center">All inference is local. Nothing leaves your browser.</p>
+
+  </aside>
+
+  <!-- Main chat -->
+  <main class="demo-main">
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome-state" id="welcomeMsg">
+          <div class="wi">🔷</div>
+          <h3>Phi-3 Mini via ONNX Runtime Web</h3>
+          <p>This demo runs Microsoft's Phi-3 Mini model using ONNX Runtime Web — the same runtime that powers on-device AI in Windows and Azure. Select an execution provider and click Load.</p>
+
+          <div class="model-approach-card" style="text-align:left;margin-top:8px">
+            <strong>Loading approach:</strong>
+            <ol>
+              <li>Select provider: <strong>WebGPU</strong> (fast, Chrome 113+) or <strong>WASM</strong> (slower, universal)</li>
+              <li>Click Load — model downloads from Hugging Face CDN (~2.2GB, cached after first load)</li>
+              <li>Uses <code>Xenova/Phi-3-mini-4k-instruct</code> via Transformers.js ONNX pipeline</li>
+              <li>For direct ONNX loading, a server is needed due to model sharding (see <a href="https://github.com/microsoft/onnxruntime/tree/main/js/web" target="_blank">ORT Web repo</a>)</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput"
+          placeholder="Load model first, then type your message… (Enter to send, Shift+Enter for newline)"
+          rows="1" disabled></textarea>
+        <button class="send-btn" id="sendBtn" disabled>➤</button>
+      </div>
+    </div>
+
+    <!-- Model I/O info panel -->
+    <div class="demo-footer" id="ioPanel">
+      <span id="footerProvider">Provider: —</span>
+      <span id="footerModel">Model: —</span>
+      <span id="footerInputs">Inputs: —</span>
+    </div>
+  </main>
+
+</div>
+
+<!-- ONNX Runtime Web (for reference / future direct use) -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/ort.min.js"></script>
+
+<script type="module">
+// ── Strategy ───────────────────────────────────────────────────────────────
+// Loading a multi-file Phi-3 ONNX model directly in browser requires:
+//   1. Server with CORS headers to stream the sharded .onnx files
+//   2. Tokenizer (BPE) implementation in JS
+//   3. KV-cache management for autoregressive generation
+//
+// For a fully self-contained demo that works offline, we use Transformers.js
+// with the ONNX Xenova/Phi-3-mini-4k-instruct model, which handles all of
+// the above. The ORT session creation code is shown for reference.
+//
+// To use direct ONNX Runtime Web with WebGPU:
+//   const session = await ort.InferenceSession.create(modelBuffer, {
+//     executionProviders: ['webgpu'],
+//     graphOptimizationLevel: 'all',
+//   });
+
+import { pipeline, env } from
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+env.allowLocalModels = false;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let generator    = null;
+let chatHistory  = [];
+let isGenerating = false;
+let selectedProvider = "wasm";
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+// Provider toggle
+document.querySelectorAll(".provider-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".provider-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedProvider = btn.dataset.prov;
+    updateProviderNote();
+    updateRuntimeLabel();
+  });
+});
+
+function updateProviderNote() {
+  const note = $("providerNote");
+  if (selectedProvider === "webgpu") {
+    note.textContent = "WebGPU: ~15 tok/s · Requires Chrome 113+";
+    note.style.color = "var(--green)";
+  } else {
+    note.textContent = "WASM: ~1–3 tok/s · Works in any browser";
+    note.style.color = "var(--text-dim)";
+  }
+}
+
+function updateRuntimeLabel() {
+  $("runtimeLabel").textContent =
+    (selectedProvider === "webgpu" ? "WebGPU" : "WASM") + " / Transformers.js";
+}
+
+// Sliders
+$("tempSlider").addEventListener("input",   () => $("tempVal").textContent   = parseFloat($("tempSlider").value).toFixed(2));
+$("maxTokSlider").addEventListener("input", () => $("maxTokVal").textContent = $("maxTokSlider").value);
+
+// Collapsible system prompt
+$("syspromptToggle").addEventListener("click", () => {
+  const body  = $("syspromptBody");
+  const arrow = $("syspromptArrow");
+  const open  = body.style.display !== "none";
+  body.style.display = open ? "none" : "block";
+  arrow.classList.toggle("open", !open);
+});
+
+// ── Load model ─────────────────────────────────────────────────────────────
+$("loadBtn").addEventListener("click", loadModel);
+
+async function loadModel() {
+  $("loadBtn").disabled = true;
+  $("progressSection").style.display = "block";
+  setStatus("loading", "Downloading Phi-3 Mini…");
+
+  // Log ONNX RT availability
+  try {
+    if (window.ort) {
+      console.log("[ONNX Runtime Web] Version:", ort.version || "loaded");
+      console.log("[ONNX Runtime Web] Available providers would be: wasm, webgpu");
+    }
+  } catch (_) {}
+
+  try {
+    // Use Transformers.js text-generation pipeline (handles ONNX internally)
+    // The 'device' option routes to WebGPU when supported
+    const options = {
+      progress_callback: (p) => {
+        if (p.status === "progress" && p.total) {
+          const pct = Math.round(p.loaded / p.total * 100);
+          $("progressFill").style.width = pct + "%";
+          $("progressLabel").textContent = `${p.file || "model"} — ${pct}%`;
+        }
+      }
+    };
+
+    // If WebGPU selected, hint to use it (Transformers.js 2.17 supports this)
+    if (selectedProvider === "webgpu" && navigator.gpu) {
+      try {
+        options.device = "webgpu";
+        $("progressLabel").textContent = "Requesting WebGPU device…";
+      } catch (_) {}
+    }
+
+    generator = await pipeline(
+      "text-generation",
+      "Xenova/Phi-3-mini-4k-instruct",
+      options
+    );
+
+    $("progressFill").style.width = "100%";
+    $("progressLabel").textContent = "Model loaded ✓";
+
+    const actualProvider = (selectedProvider === "webgpu" && navigator.gpu) ? "WebGPU" : "WASM";
+    setStatus("ready", "Phi-3 Mini ready (" + actualProvider + ")");
+    $("statProvider").textContent = actualProvider;
+    $("footerProvider").textContent = "Provider: " + actualProvider;
+    $("footerModel").textContent    = "Xenova/Phi-3-mini-4k-instruct";
+    $("footerInputs").textContent   = "Inputs: input_ids, attention_mask";
+
+    $("chatInput").disabled  = false;
+    $("sendBtn").disabled    = false;
+    $("chatInput").placeholder = "Type a message… (Enter to send, Shift+Enter for newline)";
+    $("welcomeMsg").style.display = "none";
+    $("chatInput").focus();
+
+  } catch (err) {
+    setStatus("error", "Load failed: " + err.message);
+    $("progressLabel").textContent = "Error: " + err.message;
+    console.error(err);
+    $("loadBtn").disabled = false;
+  }
+
+  $("loadBtn").textContent = generator ? "🔄 Reload / Switch" : "⬇ Load Phi-3 Mini";
+}
+
+// ── Send ───────────────────────────────────────────────────────────────────
+$("sendBtn").addEventListener("click", sendMessage);
+$("chatInput").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+document.querySelectorAll(".example-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (!generator || isGenerating) return;
+    $("chatInput").value = btn.dataset.prompt;
+    sendMessage();
+  });
+});
+
+async function sendMessage() {
+  if (!generator || isGenerating) return;
+  const text = $("chatInput").value.trim();
+  if (!text) return;
+
+  $("chatInput").value = "";
+  isGenerating = true;
+  $("sendBtn").disabled  = true;
+  $("chatInput").disabled = true;
+  setStatus("generating", "Generating…");
+
+  // Format as Phi-3 chat template
+  chatHistory.push({ role: "user", content: text });
+  appendMessage("user", text);
+
+  const assistantEl  = appendMessage("assistant", "");
+  const bubble       = assistantEl.querySelector(".message-bubble");
+  bubble.classList.add("typing-cursor");
+
+  const startTime = performance.now();
+
+  try {
+    // Build Phi-3 prompt string
+    const sysPrompt  = $("systemPrompt").value.trim();
+    let promptString = "";
+    if (sysPrompt) promptString += `<|system|>\n${sysPrompt}<|end|>\n`;
+
+    for (const m of chatHistory) {
+      if (m.role === "user")      promptString += `<|user|>\n${m.content}<|end|>\n`;
+      else if (m.role === "assistant") promptString += `<|assistant|>\n${m.content}<|end|>\n`;
+    }
+    promptString += "<|assistant|>\n";
+
+    const result = await generator(promptString, {
+      max_new_tokens:  parseInt($("maxTokSlider").value),
+      temperature:     parseFloat($("tempSlider").value),
+      do_sample:       parseFloat($("tempSlider").value) > 0,
+      return_full_text: false,
+    });
+
+    const generated = result[0].generated_text;
+    bubble.classList.remove("typing-cursor");
+    bubble.textContent = generated;
+
+    chatHistory.push({ role: "assistant", content: generated });
+
+    const elapsed  = ((performance.now() - startTime) / 1000).toFixed(2);
+    const tokEst   = Math.ceil(generated.length / 4);
+    $("statTokens").textContent = tokEst + " (est.)";
+    $("statTime").textContent   = elapsed + "s";
+
+    const meta = assistantEl.querySelector(".message-meta");
+    meta.textContent = new Date().toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+
+  } catch (err) {
+    bubble.classList.remove("typing-cursor");
+    bubble.textContent = "⚠ Error: " + err.message;
+    console.error(err);
+  } finally {
+    isGenerating = false;
+    $("sendBtn").disabled   = false;
+    $("chatInput").disabled = false;
+    setStatus("ready", "Ready");
+    scrollToBottom();
+    $("chatInput").focus();
+  }
+}
+
+// ── Clear ──────────────────────────────────────────────────────────────────
+$("clearBtn").addEventListener("click", () => {
+  chatHistory = [];
+  const msgs = $("chatMessages");
+  msgs.innerHTML = "";
+  msgs.appendChild($("welcomeMsg"));
+  $("welcomeMsg").style.display = generator ? "none" : "flex";
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function appendMessage(role, content) {
+  $("welcomeMsg").style.display = "none";
+  const el = document.createElement("div");
+  el.className = "message " + role;
+  el.innerHTML = `<div class="message-bubble"></div><div class="message-meta"></div>`;
+  el.querySelector(".message-bubble").textContent = content;
+  $("chatMessages").appendChild(el);
+  scrollToBottom();
+  return el;
+}
+
+function scrollToBottom() { $("chatMessages").scrollTop = $("chatMessages").scrollHeight; }
+
+function setStatus(type, text) {
+  $("statusDot").className    = "status-dot " + type;
+  $("statusText").textContent = text;
+}
+
+// Auto-resize textarea
+$("chatInput").addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+});
+
+// ── Show ONNX session shape reference (informational) ─────────────────────
+// When ONNX Runtime Web is used directly, model inputs/outputs look like this:
+// Input names:  ['input_ids', 'attention_mask', 'past_key_values.*']
+// Output names: ['logits', 'present.*']
+// Shapes: input_ids = [batch, seq_len] int64
+//         attention_mask = [batch, seq_len] int64
+//         logits = [batch, seq_len, vocab_size=32064] float32
+console.log(`
+[ONNX Runtime Web - Phi-3 Mini Tensor Reference]
+=================================================
+Loaded via CDN: ort v${window.ort ? (ort.version || "1.20") : "1.20"}
+
+Direct ONNX approach (requires server for sharded files):
+  Session inputs:
+    - input_ids          [batch, seq_len]  int64
+    - attention_mask     [batch, seq_len]  int64
+    - past_key_values.0  [batch, 32, past_len, 96]  float32  (one per layer × 32)
+
+  Session outputs:
+    - logits             [batch, seq_len, 32064]  float32
+    - present.0          [batch, 32, new_past_len, 96]  float32
+
+  Greedy decode step:
+    logits[:, -1, :]  → argmax → next_token_id → append to input_ids
+`);
+</script>
+</body>
+</html>

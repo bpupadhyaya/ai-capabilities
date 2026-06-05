@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONNX Runtime Web Demos — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  body { overflow-y: auto; }
+
+  .provider-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 640px) { .provider-comparison { grid-template-columns: 1fr; } }
+
+  .provider-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .provider-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .provider-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: .7rem;
+    font-weight: 600;
+  }
+  .badge-wasm  { background: rgba(88,166,255,.15); color: var(--accent); }
+  .badge-webgpu { background: rgba(63,185,80,.15); color: var(--green); }
+
+  .perf-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+  }
+  .perf-table thead th {
+    background: var(--bg-card2);
+    color: var(--text-muted);
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .perf-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-dim);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .perf-table tbody tr:last-child td { border-bottom: none; }
+  .perf-table tbody tr:hover td { background: var(--bg-card2); }
+  .perf-table td.op-col { font-weight: 600; }
+  .perf-table td.wasm-col  { color: var(--accent); font-family: var(--mono); }
+  .perf-table td.webgpu-col { color: var(--green); font-family: var(--mono); }
+  .perf-table td.speedup-col { color: var(--orange); font-weight: 700; }
+
+  .code-block pre {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: .82rem;
+    color: var(--text);
+    line-height: 1.65;
+  }
+
+  .kw   { color: #ff7b72; }
+  .fn   { color: #d2a8ff; }
+  .str  { color: #a5d6ff; }
+  .cmt  { color: #8b949e; font-style: italic; }
+  .var  { color: #ffa657; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html">
+      <span class="brand-icon">🧠</span> AI Capabilities
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="../../pages/">Pages</a>
+      <span class="nav-demos-label">Demos:</span>
+      <a class="nav-link" href="../webllm/index.html">WebLLM</a>
+      <a class="nav-link" href="../transformers-js/index.html">Transformers.js</a>
+      <a class="nav-link active" href="index.html">ONNX Web</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="page-container" style="padding-top:0;padding-bottom:0">
+    <div class="hero-badge">Direct Model Inference · WebGPU · WebAssembly</div>
+    <h1 class="hero-title">ONNX Runtime Web</h1>
+    <p class="hero-subtitle">
+      Run ONNX-format models directly in the browser at near-native performance.
+      Lower-level than Transformers.js — gives you direct control over execution providers,
+      tensor shapes, and quantization.
+    </p>
+  </div>
+</div>
+
+<div class="page-container">
+
+  <!-- What is ONNX Web -->
+  <div class="section">
+    <h2 class="section-title">⚙️ What is ONNX Runtime Web?</h2>
+    <div class="info-box" style="margin-bottom:14px">
+      <strong>ONNX (Open Neural Network Exchange)</strong> is an open format for representing machine learning models.
+      <strong>ONNX Runtime Web</strong> executes them in the browser — supporting both
+      WebAssembly (CPU, works everywhere) and WebGPU (GPU accelerated, Chrome 113+) backends.
+      Unlike Transformers.js which wraps models in a high-level pipeline API, ONNX Runtime Web
+      gives you direct access to <strong>tensor I/O</strong>, letting you load any .onnx file and run inference.
+    </div>
+
+    <div class="provider-comparison">
+      <div class="provider-card">
+        <div class="provider-card-title">
+          <span>🏃 WASM Backend</span>
+          <span class="provider-badge badge-wasm">Universal</span>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:7px">
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> Works in all modern browsers</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> iOS and Android supported</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> Multi-threaded via SharedArrayBuffer</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--yellow)">~</span> Slower than GPU (5-20x for large models)</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> Best for small models &lt;100MB</li>
+        </ul>
+      </div>
+
+      <div class="provider-card">
+        <div class="provider-card-title">
+          <span>⚡ WebGPU Backend</span>
+          <span class="provider-badge badge-webgpu">GPU Accelerated</span>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:7px">
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> Hardware GPU acceleration</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> 10-50x faster for large models</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--red)">✗</span> Chrome 113+ / Edge 113+ only</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--yellow)">~</span> Safari 17+ macOS only</li>
+          <li style="font-size:.85rem;color:var(--text-muted);display:flex;gap:8px"><span style="color:var(--green)">✓</span> Best for 1B+ parameter models</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demos -->
+  <div class="section">
+    <h2 class="section-title">🗂 Available Demos</h2>
+    <div class="card-grid">
+
+      <div class="cat-card" style="cursor:pointer" onclick="location.href='phi-mini.html'">
+        <div class="cat-card-icon">💬</div>
+        <div class="cat-card-title">Phi-3 Mini Chat</div>
+        <div class="cat-card-desc">
+          Microsoft Phi-3-mini running via ONNX Runtime Web with WebGPU acceleration.
+          Full chat interface with streaming output and execution provider selection.
+        </div>
+        <div class="cat-card-badge demo">Demo</div>
+      </div>
+
+      <a class="cat-card" href="#" onclick="return showCS('Sentence Embeddings')">
+        <div class="cat-card-icon">🔢</div>
+        <div class="cat-card-title">Sentence Embeddings</div>
+        <div class="cat-card-desc">
+          Run all-MiniLM-L6-v2 ONNX model directly — lower-level access to embedding tensors and pooling operations.
+        </div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showCS('Token Classification')">
+        <div class="cat-card-icon">🔖</div>
+        <div class="cat-card-title">Token Classification (NER)</div>
+        <div class="cat-card-desc">
+          Named Entity Recognition using BERT ONNX model. Direct tokenizer + inference + decode pipeline.
+        </div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showCS('Custom Model Loader')">
+        <div class="cat-card-icon">📦</div>
+        <div class="cat-card-title">Custom Model Loader</div>
+        <div class="cat-card-desc">
+          Upload any .onnx file, inspect input/output tensor shapes, run forward pass with custom inputs.
+          Ideal for testing your own quantized models.
+        </div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Performance comparison table -->
+  <div class="section">
+    <h2 class="section-title">📊 Performance: WASM vs WebGPU</h2>
+    <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">
+      Approximate benchmarks on a modern laptop (M2 MacBook / Intel i7). Actual performance varies by hardware.
+    </p>
+    <div class="perf-table-wrap">
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>Model / Operation</th>
+            <th>Parameters</th>
+            <th class="wasm-col">WASM (CPU)</th>
+            <th class="webgpu-col">WebGPU</th>
+            <th class="speedup-col">Speedup</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="op-col">all-MiniLM-L6-v2 (embedding)</td>
+            <td>22M</td>
+            <td class="wasm-col">~15ms</td>
+            <td class="webgpu-col">~4ms</td>
+            <td class="speedup-col">~4x</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">Per sentence, 384-dim output</td>
+          </tr>
+          <tr>
+            <td class="op-col">DistilBERT-base (classification)</td>
+            <td>66M</td>
+            <td class="wasm-col">~40ms</td>
+            <td class="webgpu-col">~8ms</td>
+            <td class="speedup-col">~5x</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">Per sequence, seq_len=128</td>
+          </tr>
+          <tr>
+            <td class="op-col">ViT-base image classification</td>
+            <td>86M</td>
+            <td class="wasm-col">~80ms</td>
+            <td class="webgpu-col">~12ms</td>
+            <td class="speedup-col">~7x</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">224×224 image</td>
+          </tr>
+          <tr>
+            <td class="op-col">Phi-3 Mini (text generation)</td>
+            <td>3.8B</td>
+            <td class="wasm-col">~1 tok/s</td>
+            <td class="webgpu-col">~15 tok/s</td>
+            <td class="speedup-col">~15x</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">int4 quantized</td>
+          </tr>
+          <tr>
+            <td class="op-col">Whisper-base (speech-to-text)</td>
+            <td>74M</td>
+            <td class="wasm-col">~800ms</td>
+            <td class="webgpu-col">~120ms</td>
+            <td class="speedup-col">~7x</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">30s audio chunk</td>
+          </tr>
+          <tr>
+            <td class="op-col">DETR ResNet-50 (object detection)</td>
+            <td>41M</td>
+            <td class="wasm-col">~450ms</td>
+            <td class="webgpu-col">~60ms</td>
+            <td class="speedup-col">~7x</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">Full forward pass</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Code snippet -->
+  <div class="section">
+    <h2 class="section-title">💻 How to Use ONNX Runtime Web</h2>
+
+    <div class="code-block">
+      <pre><span class="cmt">&lt;!-- Load from CDN --&gt;</span>
+<span class="kw">&lt;script</span> <span class="var">src</span>=<span class="str">"https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/ort.min.js"</span><span class="kw">&gt;&lt;/script&gt;</span>
+<span class="cmt">&lt;!-- For WebGPU support --&gt;</span>
+<span class="kw">&lt;script</span> <span class="var">src</span>=<span class="str">"https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/ort.webgpu.min.js"</span><span class="kw">&gt;&lt;/script&gt;</span>
+
+<span class="cmt">// Configure WASM paths</span>
+ort.env.wasm.<span class="var">wasmPaths</span> = <span class="str">'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/'</span>;
+
+<span class="cmt">// Load a model (fetch as ArrayBuffer)</span>
+<span class="kw">const</span> <span class="var">modelBuffer</span> = <span class="kw">await</span> (<span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'model.onnx'</span>)).<span class="fn">arrayBuffer</span>();
+
+<span class="cmt">// Create session — WebGPU with WASM fallback</span>
+<span class="kw">let</span> <span class="var">session</span>;
+<span class="kw">try</span> {
+  <span class="var">session</span> = <span class="kw">await</span> ort.InferenceSession.<span class="fn">create</span>(<span class="var">modelBuffer</span>, {
+    executionProviders: [<span class="str">'webgpu'</span>],
+    graphOptimizationLevel: <span class="str">'all'</span>,
+  });
+} <span class="kw">catch</span> {
+  <span class="var">session</span> = <span class="kw">await</span> ort.InferenceSession.<span class="fn">create</span>(<span class="var">modelBuffer</span>, {
+    executionProviders: [<span class="str">'wasm'</span>],
+  });
+}
+
+<span class="cmt">// Inspect model I/O</span>
+console.<span class="fn">log</span>(<span class="str">'Inputs:'</span>,  <span class="var">session</span>.inputNames);   <span class="cmt">// e.g. ['input_ids', 'attention_mask']</span>
+console.<span class="fn">log</span>(<span class="str">'Outputs:'</span>, <span class="var">session</span>.outputNames);  <span class="cmt">// e.g. ['logits']</span>
+
+<span class="cmt">// Run inference</span>
+<span class="kw">const</span> <span class="var">inputIds</span> = <span class="kw">new</span> <span class="fn">BigInt64Array</span>([<span class="var">101n</span>, <span class="var">7592n</span>, <span class="var">2088n</span>, <span class="var">102n</span>]);
+<span class="kw">const</span> <span class="var">feeds</span> = {
+  input_ids:      <span class="kw">new</span> ort.Tensor(<span class="str">'int64'</span>, <span class="var">inputIds</span>, [<span class="var">1</span>, <span class="var">4</span>]),
+  attention_mask: <span class="kw">new</span> ort.Tensor(<span class="str">'int64'</span>, <span class="kw">new</span> <span class="fn">BigInt64Array</span>([<span class="var">1n</span>, <span class="var">1n</span>, <span class="var">1n</span>, <span class="var">1n</span>]), [<span class="var">1</span>, <span class="var">4</span>]),
+};
+
+<span class="kw">const</span> <span class="var">results</span> = <span class="kw">await</span> <span class="var">session</span>.<span class="fn">run</span>(<span class="var">feeds</span>);
+<span class="kw">const</span> <span class="var">logits</span> = <span class="var">results</span>[<span class="str">'logits'</span>];
+console.<span class="fn">log</span>(<span class="str">'Output shape:'</span>, <span class="var">logits</span>.dims);   <span class="cmt">// [1, 4, vocab_size]</span>
+console.<span class="fn">log</span>(<span class="str">'Output data:'</span>,  <span class="var">logits</span>.data);   <span class="cmt">// Float32Array</span></pre>
+    </div>
+  </div>
+
+  <!-- CDN links -->
+  <div class="section">
+    <h2 class="section-title">📦 CDN References</h2>
+    <div class="link-row">
+      <a class="link-chip" href="https://www.npmjs.com/package/onnxruntime-web" target="_blank">📦 npm: onnxruntime-web</a>
+      <a class="link-chip" href="https://onnxruntime.ai/docs/tutorials/web/" target="_blank">📖 ORT Web Docs</a>
+      <a class="link-chip" href="https://github.com/microsoft/onnxruntime" target="_blank">🐙 GitHub</a>
+      <a class="link-chip" href="https://huggingface.co/models?library=onnx" target="_blank">🤗 ONNX models on HF</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function showCS(name) {
+  alert(name + " demo coming soon!");
+  return false;
+}
+</script>
+</body>
+</html>

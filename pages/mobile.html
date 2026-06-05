@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile &amp; On-Device AI Models — AI Capabilities Catalog</title>
+  <meta name="description" content="LLMs that run on smartphones, tablets, and edge devices without internet. Gemma 3n, Llama 3.2, SmolLM2, DeepSeek-R1-Distill. RAM requirements, inference engines, offline capability.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="open-source.html" class="nav-link">Open Source</a></li>
+        <li><a href="proprietary.html" class="nav-link">Proprietary</a></li>
+        <li><a href="mobile.html" class="nav-link active">Mobile</a></li>
+        <li><a href="desktop.html" class="nav-link">Desktop</a></li>
+        <li><a href="datacenter.html" class="nav-link">Datacenter</a></li>
+        <li><a href="agi-roadmap.html" class="nav-link">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="../demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="../demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="../demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">On-Device Intelligence</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Mobile &amp; On-Device Models</span>
+      </h1>
+      <p class="hero-subtitle">
+        LLMs that run on smartphones, tablets, and edge devices — entirely without internet.
+        Private by design. Functional in the most remote and restricted environments.
+      </p>
+      <div class="hero-actions">
+        <a href="agi-roadmap.html" class="btn btn-primary">AGI Roadmap</a>
+        <a href="../demos/webllm/index.html" class="btn btn-secondary">WebLLM Demo</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Key metrics callout -->
+    <section class="section">
+      <div class="info-box">
+        <strong>Mobile inference rules of thumb:</strong>
+        Minimum viable LLM on mobile requires approximately <strong>1.5 GB RAM</strong> (1B-2B params at INT4).
+        For a useful chat model, target <strong>3–4 GB RAM</strong> (3B–4B params). Most modern smartphones
+        (2022+) have 6–12 GB RAM. Storage for a Q4 quantized 1B model is roughly <strong>0.7 GB</strong>;
+        a 4B model is roughly <strong>2.5 GB</strong>. Neural processing units (NPUs) on Apple A-series and
+        Qualcomm Snapdragon chips can run INT4/INT8 inference at 2–5x lower power than the CPU alone.
+      </div>
+    </section>
+
+    <!-- Device compatibility -->
+    <section class="section">
+      <h2 class="section-title">Device Compatibility</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">🤖</div>
+          <div class="feature-card-title">Android</div>
+          <div class="feature-card-desc">
+            Pixel 6+ (Tensor G1+), Samsung Galaxy S21+, any device with 6 GB+ RAM.
+            Use MLC LLM, MediaPipe, or llama.cpp via Termux. Pixel 9 Pro has Google AI on-device APIs.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🍎</div>
+          <div class="feature-card-title">iOS / iPadOS</div>
+          <div class="feature-card-desc">
+            iPhone 12+, iPad with A14+. Use MLC LLM (Metal), Core ML (via Apple's Foundation Models API),
+            or llama.cpp iOS builds. Apple Intelligence uses on-device models on A17 Pro / M-series.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🍓</div>
+          <div class="feature-card-title">Raspberry Pi &amp; SBCs</div>
+          <div class="feature-card-desc">
+            Raspberry Pi 5 (8 GB RAM) runs Llama 3.2 3B at ~2–3 tok/s via llama.cpp. Pi 4 (4 GB)
+            handles 1B models comfortably. Orange Pi, Rock 5B, and Radxa boards are also viable.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">⚙</div>
+          <div class="feature-card-title">Embedded / Jetson</div>
+          <div class="feature-card-desc">
+            NVIDIA Jetson Orin NX (16 GB) runs 7B models at real-time speeds. Jetson Nano handles
+            1B–3B. For MCUs, look at TensorFlow Lite Micro and ONNX Runtime Mobile for encoder models.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Runtime options -->
+    <section class="section">
+      <h2 class="section-title">Mobile Inference Runtimes</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">🦙</div>
+          <div class="feature-card-title">llama.cpp</div>
+          <div class="feature-card-desc">
+            The universal runtime. Runs on Android (via Termux or NDK), iOS (via Swift bindings),
+            Raspberry Pi, and desktop. Supports GGUF quantization. Widest model compatibility.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🚀</div>
+          <div class="feature-card-title">MLC LLM</div>
+          <div class="feature-card-desc">
+            Machine Learning Compilation from CMU. Pre-compiled models for iOS (Metal), Android (Vulkan/OpenCL),
+            and WebGPU. Fastest throughput on mobile GPUs. Official iOS/Android apps available.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔦</div>
+          <div class="feature-card-title">ExecuTorch</div>
+          <div class="feature-card-desc">
+            Meta's on-device inference library. Integrates with PyTorch. Supports Llama 3.2
+            with XNNPACK (CPU), Metal (iOS), and Vulkan (Android) backends. Available as Swift/Java SDK.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🍏</div>
+          <div class="feature-card-title">Core ML</div>
+          <div class="feature-card-desc">
+            Apple's first-party inference framework. Uses ANE (Neural Engine) for maximum
+            efficiency on Apple Silicon. Best option for iOS production apps. Gemma and Llama
+            have Core ML conversion tools.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🎯</div>
+          <div class="feature-card-title">TensorFlow Lite</div>
+          <div class="feature-card-desc">
+            Google's mobile runtime. MediaPipe uses TFLite under the hood for Gemma 3n.
+            Wide Android ecosystem support. GPU delegate accelerates transformer models.
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔷</div>
+          <div class="feature-card-title">ONNX Runtime Mobile</div>
+          <div class="feature-card-desc">
+            Cross-platform. Encoder models (Whisper, embedding models) run efficiently.
+            Full generative model support via ONNX Runtime GenAI. Works on iOS and Android.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <h2 class="section-title">Mobile Model Stats</h2>
+      <div id="stats"></div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section">
+      <h2 class="section-title">Filter &amp; Search</h2>
+      <div id="filters"></div>
+    </section>
+
+    <!-- Table -->
+    <section class="section">
+      <h2 class="section-title">Mobile Model Catalog</h2>
+      <div id="catalog"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; Mobile &amp; On-Device Models &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+  </footer>
+
+  <script src="../assets/js/catalog.js"></script>
+  <script>
+    Catalog.initPage({
+      jsonPath: '../data/models.json',
+      statsContainerId: 'stats',
+      tableContainerId: 'catalog',
+      filterContainerId: 'filters',
+      defaultFilters: { deployment: ['mobile'] },
+      columns: [
+        'name','params','ram_min','storage_q4','context',
+        'on_device','offline','modalities','quantizations',
+        'inference_engines','ollama_name','webllm_id','links'
+      ],
+      pageTitle: 'Mobile & On-Device Models'
+    });
+  </script>
+</body>
+</html>

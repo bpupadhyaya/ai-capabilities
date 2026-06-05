@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proprietary AI Models — AI Capabilities Catalog</title>
+  <meta name="description" content="Reference for commercial AI APIs: GPT-4o, Claude 3.7, Gemini 2.5, Grok 3. Pricing, context windows, modalities, and comparison with open-source alternatives.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="open-source.html" class="nav-link">Open Source</a></li>
+        <li><a href="proprietary.html" class="nav-link active">Proprietary</a></li>
+        <li><a href="mobile.html" class="nav-link">Mobile</a></li>
+        <li><a href="desktop.html" class="nav-link">Desktop</a></li>
+        <li><a href="datacenter.html" class="nav-link">Datacenter</a></li>
+        <li><a href="agi-roadmap.html" class="nav-link">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="../demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="../demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="../demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">Commercial APIs</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Proprietary AI Models</span>
+      </h1>
+      <p class="hero-subtitle">
+        Commercial APIs and closed-source models from OpenAI, Anthropic, Google, and xAI.
+        Maximum capability at a cost — no local inference, no privacy guarantees.
+      </p>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Warning box -->
+    <section class="section">
+      <div class="warn-box">
+        <strong>Important:</strong> These models require API keys and payment. They cannot be used
+        offline or on-device (except where noted). Every prompt you send is processed on vendor
+        servers — review each vendor's data retention and privacy policy before using proprietary
+        models with sensitive data. For privacy-critical workloads, use
+        <a href="open-source.html">open-source models</a> instead.
+      </div>
+    </section>
+
+    <!-- Comparison section -->
+    <section class="section">
+      <h2 class="section-title">Proprietary vs Open Source — Trade-offs</h2>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <h3 style="color:var(--accent)">What Proprietary Gives You</h3>
+          <ul>
+            <li>Peak benchmark performance (GPT-4o, Claude 3.7, Gemini 2.5)</li>
+            <li>Massive context windows — up to 1M tokens (Gemini)</li>
+            <li>Native multimodal: text + image + audio + video in one API call</li>
+            <li>No hardware requirements — works on any device with internet</li>
+            <li>Managed uptime, versioning, and safety guardrails</li>
+            <li>Real-time web access and function calling (some models)</li>
+            <li>Constant model updates without local re-downloads</li>
+            <li>Pay-per-use economics — zero upfront hardware cost</li>
+          </ul>
+        </div>
+        <div class="compare-col">
+          <h3 style="color:var(--red)">What Proprietary Costs You</h3>
+          <ul>
+            <li>Every prompt leaves your device — no true privacy</li>
+            <li>Ongoing per-token billing — costs scale with usage</li>
+            <li>Vendor lock-in: pricing, availability, API changes are outside your control</li>
+            <li>Requires internet — useless offline or in restricted environments</li>
+            <li>No fine-tuning control over base model weights</li>
+            <li>Opaque safety filters can refuse legitimate use cases</li>
+            <li>GDPR/CCPA complexity when processing user data</li>
+            <li>Service can be discontinued or geo-restricted at any time</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- When to use proprietary -->
+    <section class="section">
+      <div class="info-box">
+        <strong>When proprietary makes sense:</strong> Prototyping quickly without GPU setup,
+        tasks requiring 1M+ token context (whole codebase analysis), state-of-the-art multimodal
+        (video understanding, real-time audio), or when open-source quality isn't yet sufficient for
+        your use case. For production with sensitive data or high volume, evaluate open-source
+        alternatives — <a href="pages/agi-roadmap.html">open-source models are closing the gap rapidly</a>.
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <h2 class="section-title">Proprietary Model Stats</h2>
+      <div id="stats"></div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section">
+      <h2 class="section-title">Filter &amp; Search</h2>
+      <div id="filters"></div>
+    </section>
+
+    <!-- Table -->
+    <section class="section">
+      <h2 class="section-title">Proprietary Model Catalog</h2>
+      <div id="catalog"></div>
+    </section>
+
+    <!-- Provider guide -->
+    <section class="section">
+      <h2 class="section-title">API Provider Quick Reference</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">🟢</div>
+          <div class="feature-card-title">OpenAI</div>
+          <div class="feature-card-desc">
+            GPT-4o, GPT-4o Mini, o1, o3. Industry standard. Best ecosystem and tooling.
+            <a href="https://platform.openai.com" target="_blank" rel="noopener">platform.openai.com</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔵</div>
+          <div class="feature-card-title">Anthropic</div>
+          <div class="feature-card-desc">
+            Claude 3.7, 3.5, Haiku. Best for coding, analysis, long context. Constitutional AI safety.
+            <a href="https://docs.anthropic.com" target="_blank" rel="noopener">docs.anthropic.com</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔴</div>
+          <div class="feature-card-title">Google</div>
+          <div class="feature-card-desc">
+            Gemini 2.5 Pro, 2.0 Flash. 1M context. Best multimodal. Competitive pricing.
+            <a href="https://ai.google.dev" target="_blank" rel="noopener">ai.google.dev</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">⚫</div>
+          <div class="feature-card-title">xAI</div>
+          <div class="feature-card-desc">
+            Grok 3. DeepSearch, real-time web access. Strong STEM. Twitter/X integration.
+            <a href="https://x.ai/api" target="_blank" rel="noopener">x.ai/api</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; Proprietary Models Reference &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+    <p style="margin-top:8px">Pricing data is approximate and changes frequently. Verify current rates on each provider's pricing page.</p>
+  </footer>
+
+  <script src="../assets/js/catalog.js"></script>
+  <script>
+    Catalog.initPage({
+      jsonPath: '../data/models.json',
+      statsContainerId: 'stats',
+      tableContainerId: 'catalog',
+      filterContainerId: 'filters',
+      defaultFilters: { type: ['proprietary'] },
+      columns: [
+        'name','params','context','modalities','on_device',
+        'privacy','pricing','api_url','links'
+      ],
+      pageTitle: 'Proprietary AI Models'
+    });
+  </script>
+</body>
+</html>

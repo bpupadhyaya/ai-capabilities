@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vision AI — Transformers.js — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  body { overflow-y: auto; }
+
+  .vision-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+  }
+
+  .vision-sidebar {
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .vision-main {
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    color: var(--text-muted);
+    font-size: .88rem;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(88,166,255,.05);
+    color: var(--text);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-zone .drop-icon { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+
+  /* URL input */
+  .url-input {
+    width: 100%;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .82rem;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .url-input:focus { border-color: var(--accent); }
+
+  /* Image preview */
+  .preview-wrap {
+    text-align: center;
+    margin-bottom: 12px;
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+  }
+  .preview-img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--radius);
+    display: block;
+    border: 1px solid var(--border);
+  }
+
+  /* Canvas for detection */
+  #detCanvas {
+    max-width: 100%;
+    border-radius: var(--radius);
+    display: block;
+  }
+
+  /* Result bars */
+  .result-bars { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+  .result-bar-row { display: flex; align-items: center; gap: 8px; }
+  .result-bar-label { width: 160px; font-size: .8rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+  .result-bar-track { flex: 1; height: 14px; background: var(--bg-card2); border-radius: 7px; overflow: hidden; }
+  .result-bar-fill  { height: 100%; border-radius: 7px; background: var(--accent); transition: width .4s; }
+  .result-bar-pct   { width: 48px; font-size: .75rem; font-family: var(--mono); text-align: right; color: var(--text); flex-shrink: 0; }
+
+  /* Zero-shot custom labels */
+  .zs-labels-input {
+    width: 100%;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .82rem;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color .15s;
+    resize: vertical;
+    height: 80px;
+  }
+  .zs-labels-input:focus { border-color: var(--accent); }
+
+  /* Caption output */
+  .caption-output {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    font-size: 1rem;
+    color: var(--text);
+    font-style: italic;
+    min-height: 60px;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    font-size: .85rem;
+    color: var(--text-muted);
+  }
+  .loading-overlay.show { display: flex; }
+
+  /* Bounding box colors */
+  .det-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .det-legend-item { display: flex; align-items: center; gap: 4px; font-size: .75rem; color: var(--text-muted); }
+  .det-legend-swatch { width: 12px; height: 12px; border-radius: 2px; }
+
+  .sample-images { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .sample-img-btn {
+    font-size: .75rem;
+    padding: 4px 8px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: border-color .15s, color .15s;
+  }
+  .sample-img-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html"><span class="brand-icon">🧠</span> AI Capabilities</a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="index.html">Transformers.js</a>
+      <a class="nav-link" href="text-generation.html">Text Gen</a>
+      <a class="nav-link" href="embeddings.html">Embeddings</a>
+      <a class="nav-link active" href="vision.html">Vision</a>
+    </div>
+  </div>
+</nav>
+
+<div class="vision-layout">
+
+  <!-- Sidebar -->
+  <aside class="vision-sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Active Tab Models</div>
+      <div class="model-info-card" id="activeModelCard">
+        <div class="model-info-row"><span>Model</span><span id="activeModelName">ViT-base-patch16-224</span></div>
+        <div class="model-info-row"><span>Task</span><span id="activeTaskName">Image classification</span></div>
+        <div class="model-info-row"><span>Size</span><span id="activeModelSize">~350 MB</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" id="loadSection">
+      <button class="load-btn" id="loadBtn" disabled>⬇ Load Model</button>
+    </div>
+
+    <div class="sidebar-section" id="progressSection" style="display:none">
+      <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">Downloading…</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span class="status-text" id="statusText">Select a tab to load model</span>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Image source -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Load Image</div>
+      <div class="drop-zone" id="dropZone">
+        <span class="drop-icon">🖼️</span>
+        <span>Drop image here<br>or click to browse</span>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+      <div style="font-size:.72rem;color:var(--text-dim);text-align:center;margin-top:4px">— or paste URL —</div>
+      <div style="display:flex;gap:6px">
+        <input class="url-input" id="urlInput" type="text" placeholder="https://…">
+        <button class="btn btn-secondary" id="urlLoadBtn" style="padding:6px 10px;font-size:.8rem">Go</button>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <!-- Sample images -->
+    <div class="sidebar-section">
+      <div class="sidebar-label">Sample Images</div>
+      <div class="sample-images">
+        <button class="sample-img-btn" data-url="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/beignets-task-guide.png">🥐 Beignets</button>
+        <button class="sample-img-btn" data-url="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Cute_dog.jpg/320px-Cute_dog.jpg">🐶 Dog</button>
+        <button class="sample-img-btn" data-url="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/320px-Cat03.jpg">🐱 Cat</button>
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="token-stats-row">
+      <div class="token-stat"><span>Inference time</span><span id="statTime">—</span></div>
+    </div>
+
+  </aside>
+
+  <!-- Main -->
+  <main class="vision-main">
+
+    <div class="tabs" id="mainTabs">
+      <button class="tab-btn active" data-tab="classify" data-model="Xenova/vit-base-patch16-224" data-task="image-classification" data-size="~350MB">Image Classification</button>
+      <button class="tab-btn" data-tab="zeroshot"  data-model="Xenova/clip-vit-base-patch32"      data-task="zero-shot-image-classification" data-size="~350MB">Zero-shot</button>
+      <button class="tab-btn" data-tab="detect"    data-model="Xenova/detr-resnet-50"             data-task="object-detection" data-size="~170MB">Object Detection</button>
+      <button class="tab-btn" data-tab="caption"   data-model="Xenova/vit-gpt2-image-captioning"  data-task="image-to-text"    data-size="~860MB">Image Captioning</button>
+    </div>
+
+    <!-- Current image preview (shared across tabs) -->
+    <div id="imagePreviewArea" style="margin-bottom:16px;display:none">
+      <div class="sidebar-label" style="margin-bottom:6px">Loaded Image</div>
+      <img id="previewImg" class="preview-img" alt="Loaded image">
+    </div>
+
+    <!-- TAB: Image Classification -->
+    <div class="tab-pane active" id="tab-classify">
+      <div class="info-box" style="margin-bottom:12px">
+        <strong>ViT-Base Patch16-224</strong> — Vision Transformer trained on ImageNet-21k.
+        Classifies images into 1000 categories. Upload an image and click Run.
+      </div>
+      <button class="btn btn-primary" id="classifyBtn" disabled>▶ Classify Image</button>
+      <div class="loading-overlay" id="classifyLoading"><div class="spinner"></div> Classifying…</div>
+      <div id="classifyResults" class="result-bars"></div>
+    </div>
+
+    <!-- TAB: Zero-shot Classification -->
+    <div class="tab-pane" id="tab-zeroshot">
+      <div class="info-box" style="margin-bottom:12px">
+        <strong>CLIP ViT-Base-Patch32</strong> — OpenAI's CLIP model. Classify images into <em>any</em> custom categories you define — no retraining needed.
+      </div>
+      <div class="sidebar-label" style="margin-bottom:4px">Custom Labels (comma-separated)</div>
+      <textarea class="zs-labels-input" id="zsLabels">a photo of a cat, a photo of a dog, a photo of food, a photo of a landscape, a photo of a person, a photo of a vehicle</textarea>
+      <button class="btn btn-primary" id="zeroShotBtn" disabled style="margin-top:8px">▶ Classify with Custom Labels</button>
+      <div class="loading-overlay" id="zsLoading"><div class="spinner"></div> Classifying…</div>
+      <div id="zsResults" class="result-bars"></div>
+    </div>
+
+    <!-- TAB: Object Detection -->
+    <div class="tab-pane" id="tab-detect">
+      <div class="info-box" style="margin-bottom:12px">
+        <strong>DETR ResNet-50</strong> — Detection Transformer. Detects objects and draws bounding boxes.
+        Works best with real-world photos containing multiple objects.
+      </div>
+      <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+        <label class="sidebar-label">Threshold:</label>
+        <input type="range" id="detThreshold" min="0.1" max="0.9" step="0.05" value="0.5" style="width:120px">
+        <span id="detThreshVal" style="font-family:var(--mono);font-size:.78rem;color:var(--accent)">0.50</span>
+      </div>
+      <button class="btn btn-primary" id="detectBtn" disabled>▶ Detect Objects</button>
+      <div class="loading-overlay" id="detectLoading"><div class="spinner"></div> Running DETR…</div>
+      <canvas id="detCanvas" style="display:none;margin-top:10px"></canvas>
+      <div class="det-legend" id="detLegend"></div>
+    </div>
+
+    <!-- TAB: Image Captioning -->
+    <div class="tab-pane" id="tab-caption">
+      <div class="info-box" style="margin-bottom:12px">
+        <strong>ViT-GPT2 Image Captioning</strong> — Generates a natural language caption for any image.
+        Note: this model is ~860MB — allow time for first download.
+      </div>
+      <button class="btn btn-primary" id="captionBtn" disabled>▶ Generate Caption</button>
+      <div class="loading-overlay" id="captionLoading"><div class="spinner"></div> Generating caption…</div>
+      <div id="captionOutput" class="caption-output" style="display:none"></div>
+    </div>
+
+  </main>
+</div>
+
+<script type="module">
+import { pipeline, env } from
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+env.allowLocalModels = false;
+
+// ── State ──────────────────────────────────────────────────────────────────
+const pipes   = {};   // modelId → pipeline
+let currentImg = null; // HTMLImageElement | null
+let activeTab  = "classify";
+
+const TAB_META = {
+  classify: { model: "Xenova/vit-base-patch16-224",             task: "image-classification",           size: "~350 MB" },
+  zeroshot: { model: "Xenova/clip-vit-base-patch32",            task: "zero-shot-image-classification",  size: "~350 MB" },
+  detect:   { model: "Xenova/detr-resnet-50",                   task: "object-detection",               size: "~170 MB" },
+  caption:  { model: "Xenova/vit-gpt2-image-captioning",        task: "image-to-text",                  size: "~860 MB" },
+};
+
+const $ = id => document.getElementById(id);
+
+// ── Tabs ───────────────────────────────────────────────────────────────────
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    activeTab = btn.dataset.tab;
+    $("tab-" + activeTab).classList.add("active");
+
+    const meta = TAB_META[activeTab];
+    $("activeModelName").textContent = meta.model.split("/")[1] || meta.model;
+    $("activeTaskName").textContent  = meta.task;
+    $("activeModelSize").textContent = meta.size;
+    $("loadBtn").disabled = !!pipes[meta.model];
+    $("loadBtn").textContent = pipes[meta.model] ? "✓ Model loaded" : "⬇ Load Model";
+    updateActionBtns();
+  });
+});
+
+function updateActionBtns() {
+  const meta   = TAB_META[activeTab];
+  const loaded = !!pipes[meta.model];
+  const hasImg = !!currentImg;
+  $("classifyBtn").disabled = !(loaded && hasImg) || activeTab !== "classify";
+  $("zeroShotBtn").disabled = !(loaded && hasImg) || activeTab !== "zeroshot";
+  $("detectBtn").disabled   = !(loaded && hasImg) || activeTab !== "detect";
+  $("captionBtn").disabled  = !(loaded && hasImg) || activeTab !== "caption";
+}
+
+// ── Load model ─────────────────────────────────────────────────────────────
+$("loadBtn").addEventListener("click", loadActiveModel);
+
+async function loadActiveModel() {
+  const meta = TAB_META[activeTab];
+  if (pipes[meta.model]) return;
+
+  $("loadBtn").disabled = true;
+  $("progressSection").style.display = "block";
+  setStatus("loading", "Downloading " + meta.model.split("/")[1] + "…");
+
+  try {
+    pipes[meta.model] = await pipeline(meta.task, meta.model, {
+      progress_callback: (p) => {
+        if (p.status === "progress" && p.total) {
+          const pct = Math.round(p.loaded / p.total * 100);
+          $("progressFill").style.width = pct + "%";
+          $("progressLabel").textContent = `${p.file || "model"} — ${pct}%`;
+        }
+      }
+    });
+    $("progressFill").style.width = "100%";
+    $("progressLabel").textContent = "Loaded ✓";
+    setStatus("ready", meta.model.split("/")[1] + " ready");
+    $("loadBtn").textContent = "✓ Model loaded";
+    updateActionBtns();
+  } catch (err) {
+    setStatus("error", "Failed: " + err.message);
+    console.error(err);
+    $("loadBtn").disabled = false;
+  }
+}
+
+// ── Image loading ──────────────────────────────────────────────────────────
+const fileInput  = $("fileInput");
+const dropZone   = $("dropZone");
+const urlInput   = $("urlInput");
+const urlLoadBtn = $("urlLoadBtn");
+
+fileInput.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) loadImageFile(file);
+});
+
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) loadImageFile(file);
+});
+
+urlLoadBtn.addEventListener("click", () => loadImageURL(urlInput.value.trim()));
+urlInput.addEventListener("keydown", e => { if (e.key === "Enter") loadImageURL(urlInput.value.trim()); });
+
+document.querySelectorAll(".sample-img-btn").forEach(btn => {
+  btn.addEventListener("click", () => loadImageURL(btn.dataset.url));
+});
+
+function loadImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => setImage(e.target.result);
+  reader.readAsDataURL(file);
+}
+
+function loadImageURL(url) {
+  if (!url) return;
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => setImage(url);
+  img.onerror = () => setStatus("error", "Failed to load image URL");
+  img.src = url;
+}
+
+function setImage(src) {
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    currentImg = img;
+    $("previewImg").src = src;
+    $("imagePreviewArea").style.display = "block";
+    clearResults();
+    updateActionBtns();
+  };
+  img.src = src;
+}
+
+function clearResults() {
+  $("classifyResults").innerHTML = "";
+  $("zsResults").innerHTML       = "";
+  $("captionOutput").style.display = "none";
+  $("captionOutput").textContent   = "";
+  $("detCanvas").style.display     = "none";
+  $("detLegend").innerHTML         = "";
+}
+
+// ── Tab 1: Image Classification ────────────────────────────────────────────
+$("classifyBtn").addEventListener("click", async () => {
+  if (!currentImg) return;
+  const model = TAB_META["classify"].model;
+  const pipe  = pipes[model];
+  if (!pipe) return;
+
+  showLoading("classifyLoading", true);
+  const t0 = performance.now();
+
+  try {
+    const results = await pipe(currentImg.src);
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+    $("statTime").textContent = elapsed + "s";
+
+    const container = $("classifyResults");
+    container.innerHTML = `<div class="sidebar-label" style="margin-bottom:6px">Top predictions</div>`;
+    const top5 = results.slice(0, 5);
+
+    top5.forEach(r => {
+      const pct = (r.score * 100).toFixed(1);
+      const row = document.createElement("div");
+      row.className = "result-bar-row";
+      row.innerHTML = `
+        <div class="result-bar-label" title="${r.label}">${r.label}</div>
+        <div class="result-bar-track"><div class="result-bar-fill" style="width:${pct}%"></div></div>
+        <div class="result-bar-pct">${pct}%</div>`;
+      container.appendChild(row);
+    });
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  } finally {
+    showLoading("classifyLoading", false);
+  }
+});
+
+// ── Tab 2: Zero-shot ───────────────────────────────────────────────────────
+$("zeroShotBtn").addEventListener("click", async () => {
+  if (!currentImg) return;
+  const model = TAB_META["zeroshot"].model;
+  const pipe  = pipes[model];
+  if (!pipe) return;
+
+  const labelsRaw = $("zsLabels").value;
+  const labels = labelsRaw.split(",").map(s => s.trim()).filter(Boolean);
+  if (!labels.length) return;
+
+  showLoading("zsLoading", true);
+  const t0 = performance.now();
+
+  try {
+    const results = await pipe(currentImg.src, { candidate_labels: labels });
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+    $("statTime").textContent = elapsed + "s";
+
+    const container = $("zsResults");
+    container.innerHTML = `<div class="sidebar-label" style="margin-bottom:6px">Scores</div>`;
+    const pairs = results.scores.map((score, i) => ({ label: results.labels[i], score }));
+    pairs.sort((a, b) => b.score - a.score);
+
+    pairs.forEach(r => {
+      const pct = (r.score * 100).toFixed(1);
+      const row = document.createElement("div");
+      row.className = "result-bar-row";
+      row.innerHTML = `
+        <div class="result-bar-label" title="${r.label}">${r.label}</div>
+        <div class="result-bar-track"><div class="result-bar-fill" style="width:${pct}%"></div></div>
+        <div class="result-bar-pct">${pct}%</div>`;
+      container.appendChild(row);
+    });
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  } finally {
+    showLoading("zsLoading", false);
+  }
+});
+
+// ── Tab 3: Object Detection ────────────────────────────────────────────────
+$("detThreshold").addEventListener("input", () => {
+  $("detThreshVal").textContent = parseFloat($("detThreshold").value).toFixed(2);
+});
+
+$("detectBtn").addEventListener("click", async () => {
+  if (!currentImg) return;
+  const model = TAB_META["detect"].model;
+  const pipe  = pipes[model];
+  if (!pipe) return;
+
+  showLoading("detectLoading", true);
+  const t0 = performance.now();
+
+  try {
+    const threshold = parseFloat($("detThreshold").value);
+    const results   = await pipe(currentImg.src, { threshold });
+    const elapsed   = ((performance.now() - t0) / 1000).toFixed(2);
+    $("statTime").textContent = elapsed + "s";
+
+    drawDetections(currentImg, results);
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  } finally {
+    showLoading("detectLoading", false);
+  }
+});
+
+const BOX_COLORS = ["#58a6ff","#3fb950","#f0883e","#d2a8ff","#ff7b72","#ffa657","#7ee787","#a5d6ff"];
+
+function drawDetections(img, detections) {
+  const canvas = $("detCanvas");
+  canvas.style.display = "block";
+  const ctx = canvas.getContext("2d");
+
+  const maxW = canvas.parentElement.clientWidth - 40;
+  const scale = Math.min(1, maxW / img.naturalWidth);
+  canvas.width  = img.naturalWidth  * scale;
+  canvas.height = img.naturalHeight * scale;
+
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const labelColorMap = {};
+  let colorIdx = 0;
+  const legend = $("detLegend");
+  legend.innerHTML = "";
+
+  detections.forEach(det => {
+    const label = det.label;
+    if (!labelColorMap[label]) {
+      labelColorMap[label] = BOX_COLORS[colorIdx % BOX_COLORS.length];
+      colorIdx++;
+      const item = document.createElement("div");
+      item.className = "det-legend-item";
+      item.innerHTML = `<div class="det-legend-swatch" style="background:${labelColorMap[label]}"></div><span>${label}</span>`;
+      legend.appendChild(item);
+    }
+
+    const color = labelColorMap[label];
+    const { xmin, ymin, xmax, ymax } = det.box;
+    const x = xmin * scale, y = ymin * scale;
+    const w = (xmax - xmin) * scale, h = (ymax - ymin) * scale;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 2;
+    ctx.strokeRect(x, y, w, h);
+
+    const labelText = `${label} ${(det.score * 100).toFixed(0)}%`;
+    ctx.font = "bold 12px -apple-system,sans-serif";
+    const tw = ctx.measureText(labelText).width;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y - 18, tw + 8, 18);
+    ctx.fillStyle = "#000";
+    ctx.fillText(labelText, x + 4, y - 4);
+  });
+}
+
+// ── Tab 4: Image Captioning ────────────────────────────────────────────────
+$("captionBtn").addEventListener("click", async () => {
+  if (!currentImg) return;
+  const model = TAB_META["caption"].model;
+  const pipe  = pipes[model];
+  if (!pipe) return;
+
+  showLoading("captionLoading", true);
+  const t0 = performance.now();
+
+  try {
+    const [result] = await pipe(currentImg.src);
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+    $("statTime").textContent = elapsed + "s";
+
+    const out = $("captionOutput");
+    out.style.display  = "block";
+    out.textContent = '"' + (result.generated_text || result.text || JSON.stringify(result)) + '"';
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  } finally {
+    showLoading("captionLoading", false);
+  }
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function showLoading(id, show) {
+  $(id).classList.toggle("show", show);
+  setStatus(show ? "generating" : "ready", show ? "Running inference…" : "Done");
+}
+
+function setStatus(type, text) {
+  $("statusDot").className    = "status-dot " + type;
+  $("statusText").textContent = text;
+}
+
+// Init: set first tab model info
+const firstMeta = TAB_META["classify"];
+$("activeModelName").textContent = firstMeta.model.split("/")[1];
+$("activeTaskName").textContent  = firstMeta.task;
+$("activeModelSize").textContent = firstMeta.size;
+$("loadBtn").disabled = false;
+</script>
+</body>
+</html>

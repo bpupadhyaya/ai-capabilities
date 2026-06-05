@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desktop &amp; Laptop AI Models — AI Capabilities Catalog</title>
+  <meta name="description" content="Run powerful LLMs on your personal computer. Hardware guides for 8GB, 16GB, 32GB, 64GB+ RAM. Ollama, LM Studio, llama.cpp, MLX, GPT4All — everything you need to run local AI.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="open-source.html" class="nav-link">Open Source</a></li>
+        <li><a href="proprietary.html" class="nav-link">Proprietary</a></li>
+        <li><a href="mobile.html" class="nav-link">Mobile</a></li>
+        <li><a href="desktop.html" class="nav-link active">Desktop</a></li>
+        <li><a href="datacenter.html" class="nav-link">Datacenter</a></li>
+        <li><a href="agi-roadmap.html" class="nav-link">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="../demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="../demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="../demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">Personal Computing</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Desktop &amp; Laptop Models</span>
+      </h1>
+      <p class="hero-subtitle">
+        Run powerful LLMs on your personal computer for privacy, control, and zero ongoing cost.
+        From a MacBook with 8 GB to a workstation with 128 GB — there's a model for every machine.
+      </p>
+      <div class="hero-actions">
+        <a href="open-source.html" class="btn btn-primary">All Open Source</a>
+        <a href="agi-roadmap.html" class="btn btn-secondary">AGI Roadmap</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Hardware guide -->
+    <section class="section">
+      <h2 class="section-title">Hardware Tier Guide — What Can You Run?</h2>
+      <div class="table-wrapper">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>RAM Tier</th>
+              <th>VRAM (GPU)</th>
+              <th>Recommended Models</th>
+              <th>Expected Speed</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>8 GB RAM</td>
+              <td>4–6 GB VRAM</td>
+              <td>Llama 3.2 3B Q4, Phi-4 Mini Q4, Gemma 3 4B Q4, Mistral 7B Q4 (tight)</td>
+              <td>15–40 tok/s (CPU)</td>
+              <td>Close all other apps. Use Q4_K_M quantization. GPU layers help if VRAM available.</td>
+            </tr>
+            <tr>
+              <td>16 GB RAM</td>
+              <td>8–12 GB VRAM</td>
+              <td>Llama 3.1 8B, Gemma 3 12B Q4, Phi-4 Q4, Mistral 7B F16, Qwen2.5 7B</td>
+              <td>20–60 tok/s</td>
+              <td>Sweet spot for most users. Excellent Apple Silicon performance at this tier.</td>
+            </tr>
+            <tr>
+              <td>32 GB RAM</td>
+              <td>16–24 GB VRAM</td>
+              <td>Gemma 3 27B Q4, Qwen2.5-Coder 32B Q4, Aya Expanse 32B Q4, DeepSeek-R1-Distill 7B F16</td>
+              <td>15–35 tok/s</td>
+              <td>Covers most use cases including code generation. M2/M3 Pro/Max Macs excel here.</td>
+            </tr>
+            <tr>
+              <td>64 GB RAM</td>
+              <td>40–48 GB VRAM</td>
+              <td>Llama 3.3 70B Q4, Qwen2.5 72B Q4, Mixtral 8x7B Q8, DeepSeek-R1-Distill 70B Q4</td>
+              <td>8–20 tok/s</td>
+              <td>Mac Studio/Pro M2 Ultra/M3 Ultra class. Workstation territory. Outstanding capability.</td>
+            </tr>
+            <tr>
+              <td>128 GB+ RAM</td>
+              <td>80 GB+ VRAM</td>
+              <td>DeepSeek R1 (671B) Q4, Qwen3 235B-A22B Q4, Llama 3.3 70B F16 + other models simultaneously</td>
+              <td>5–15 tok/s</td>
+              <td>High-end workstations, Mac Pro, or multi-GPU setups. Frontier open-source quality.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Inference engines -->
+    <section class="section">
+      <h2 class="section-title">Inference Engines for Desktop</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">🦙</div>
+          <div class="feature-card-title">Ollama</div>
+          <div class="feature-card-desc">
+            One-command install. <code>ollama run llama3.3</code> and you're chatting.
+            Model library, REST API, GPU offloading built in. Best beginner experience.
+            <a href="https://ollama.ai" target="_blank" rel="noopener">ollama.ai</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🎛</div>
+          <div class="feature-card-title">LM Studio</div>
+          <div class="feature-card-desc">
+            Desktop GUI. Browse, download, and chat with any GGUF model. Local OpenAI-compatible
+            server. Ideal for non-technical users and model comparison.
+            <a href="https://lmstudio.ai" target="_blank" rel="noopener">lmstudio.ai</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">⚙</div>
+          <div class="feature-card-title">llama.cpp</div>
+          <div class="feature-card-desc">
+            The underlying engine for most tools. C++ binary, CPU + GPU offloading, GGUF format.
+            Advanced users tune <code>-ngl</code> GPU layers, context size, and threading.
+            <a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">📦</div>
+          <div class="feature-card-title">GPT4All</div>
+          <div class="feature-card-desc">
+            User-friendly desktop app with built-in document Q&amp;A (LocalDocs).
+            Cross-platform. Focused on privacy-preserving personal assistant use cases.
+            <a href="https://gpt4all.io" target="_blank" rel="noopener">gpt4all.io</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🌙</div>
+          <div class="feature-card-title">Jan</div>
+          <div class="feature-card-desc">
+            Open-source ChatGPT alternative. Native desktop app with model hub, threads,
+            and a local API server. Extensions support. Clean modern UI.
+            <a href="https://jan.ai" target="_blank" rel="noopener">jan.ai</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🐲</div>
+          <div class="feature-card-title">KoboldCpp</div>
+          <div class="feature-card-desc">
+            Single-file llama.cpp with a rich web UI. Popular for creative writing and roleplay.
+            Built-in story mode, prompt templates, KoboldAI client compatibility.
+            <a href="https://github.com/LostRuins/koboldcpp" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🍏</div>
+          <div class="feature-card-title">MLX (Apple Silicon)</div>
+          <div class="feature-card-desc">
+            Apple's machine learning framework. Uses unified memory for extremely fast inference
+            on M-series Macs. <code>mlx_lm.generate --model mlx-community/gemma-3-27b-it-4bit</code>
+            <a href="https://github.com/ml-explore/mlx-lm" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🚄</div>
+          <div class="feature-card-title">vLLM</div>
+          <div class="feature-card-desc">
+            Production serving for NVIDIA GPUs. PagedAttention, continuous batching, high throughput.
+            Best for local GPU servers shared by multiple users or applications.
+            <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <h2 class="section-title">Desktop Model Stats</h2>
+      <div id="stats"></div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section">
+      <h2 class="section-title">Filter &amp; Search</h2>
+      <div id="filters"></div>
+    </section>
+
+    <!-- Table -->
+    <section class="section">
+      <h2 class="section-title">Desktop Model Catalog</h2>
+      <div id="catalog"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; Desktop &amp; Laptop Models &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+  </footer>
+
+  <script src="../assets/js/catalog.js"></script>
+  <script>
+    Catalog.initPage({
+      jsonPath: '../data/models.json',
+      statsContainerId: 'stats',
+      tableContainerId: 'catalog',
+      filterContainerId: 'filters',
+      defaultFilters: { deployment: ['desktop'] },
+      columns: [
+        'name','params','ram_rec','vram','storage_q4','context',
+        'quantizations','architecture','inference_engines',
+        'ollama_name','on_device','offline','license','links'
+      ],
+      pageTitle: 'Desktop & Laptop Models'
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Capabilities Catalog — Exhaustive Reference for AGI Developers</title>
+  <meta name="description" content="The most complete open-source reference for AI models: mobile, desktop, datacenter, proprietary, and AGI roadmap. Built for developers pursuing on-device AGI.">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link active">Home</a></li>
+        <li><a href="pages/open-source.html" class="nav-link">Open Source</a></li>
+        <li><a href="pages/proprietary.html" class="nav-link">Proprietary</a></li>
+        <li><a href="pages/mobile.html" class="nav-link">Mobile</a></li>
+        <li><a href="pages/desktop.html" class="nav-link">Desktop</a></li>
+        <li><a href="pages/datacenter.html" class="nav-link">Datacenter</a></li>
+        <li><a href="pages/agi-roadmap.html" class="nav-link">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">Open Source Intelligence Reference</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">AI Capabilities Catalog</span>
+      </h1>
+      <p class="hero-subtitle">
+        The most exhaustive open reference for AI models — from 1B on-device models running on your phone
+        to 671B reasoning giants requiring GPU clusters. Built to accelerate the path to on-device AGI.
+      </p>
+      <div class="hero-actions">
+        <a href="pages/mobile.html" class="btn btn-primary">Mobile Models</a>
+        <a href="pages/open-source.html" class="btn btn-secondary">Open Source</a>
+        <a href="pages/agi-roadmap.html" class="btn btn-secondary">AGI Roadmap</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Stats -->
+    <section class="section">
+      <h2 class="section-title">Catalog Overview</h2>
+      <div id="stats"></div>
+    </section>
+
+    <!-- Mission Statement -->
+    <section class="section">
+      <h2 class="section-title">Mission</h2>
+      <div class="mission-text">
+        <p>
+          This catalog exists to collect and organize every meaningful AI model ever created — from tiny 22M
+          embedding models to trillion-parameter mixture-of-experts behemoths. The goal is a single, always-current
+          reference that any developer can open on a Saturday afternoon and answer the question: <em>"What is the
+          best model I can run right now, on my hardware, privately, offline?"</em>
+        </p>
+        <p>
+          We believe the most important breakthrough in AI is not the next GPT release — it is the moment
+          a phone in someone's pocket becomes a fully capable reasoning agent that never phones home.
+          On-device AGI means privacy is not a feature you pay extra for; it is the default. It means the
+          intelligence gap between the richest and the poorest humans on earth collapses entirely.
+        </p>
+        <p>
+          Every entry in this catalog is cross-referenced with the hardware required to run it, the inference
+          engines that support it, quantization formats available, and whether it can operate fully offline.
+          The AGI Roadmap page maps known capability gaps and proposes a composition architecture for assembling
+          general intelligence from open-source modules available today.
+        </p>
+      </div>
+    </section>
+
+    <!-- Quick access card grid -->
+    <section class="section">
+      <h2 class="section-title">Browse by Category</h2>
+      <div class="card-grid">
+        <a href="pages/open-source.html" class="cat-card">
+          <div class="cat-card-icon">🔓</div>
+          <div class="cat-card-title">Open Source Models</div>
+          <div class="cat-card-desc">Free to download, run locally, and modify. No API key required. Privacy by default.</div>
+          <div class="cat-card-badge green">Privacy First</div>
+        </a>
+        <a href="pages/proprietary.html" class="cat-card">
+          <div class="cat-card-icon">☁</div>
+          <div class="cat-card-title">Proprietary Models</div>
+          <div class="cat-card-desc">Commercial APIs: GPT-4o, Claude, Gemini, Grok. Maximum capability, requires payment.</div>
+          <div class="cat-card-badge">API Access</div>
+        </a>
+        <a href="pages/mobile.html" class="cat-card">
+          <div class="cat-card-icon">📱</div>
+          <div class="cat-card-title">Mobile Models</div>
+          <div class="cat-card-desc">LLMs proven to run on smartphones and tablets. Under 4GB RAM, battery-friendly.</div>
+          <div class="cat-card-badge green">On-Device</div>
+        </a>
+        <a href="pages/desktop.html" class="cat-card">
+          <div class="cat-card-icon">💻</div>
+          <div class="cat-card-title">Desktop Models</div>
+          <div class="cat-card-desc">Personal computer models from 7B to 70B. Ollama, LM Studio, and MLX guides included.</div>
+          <div class="cat-card-badge">8–64 GB RAM</div>
+        </a>
+        <a href="pages/datacenter.html" class="cat-card">
+          <div class="cat-card-icon">🖥</div>
+          <div class="cat-card-title">Datacenter Models</div>
+          <div class="cat-card-desc">GPU cluster and high-memory server models. DeepSeek, Falcon, Qwen3 MoE, and more.</div>
+          <div class="cat-card-badge">A100 / H100</div>
+        </a>
+        <a href="pages/agi-roadmap.html" class="cat-card">
+          <div class="cat-card-icon">🧠</div>
+          <div class="cat-card-title">AGI Roadmap</div>
+          <div class="cat-card-desc">Capability coverage table, composition architecture, hardware tiers, and gap analysis.</div>
+          <div class="cat-card-badge green">Research</div>
+        </a>
+        <a href="demos/webllm/index.html" class="cat-card">
+          <div class="cat-card-icon">🌐</div>
+          <div class="cat-card-title">WebLLM Demo</div>
+          <div class="cat-card-desc">Run LLMs directly in your browser via WebGPU. No install, no backend, 100% local.</div>
+          <div class="cat-card-badge demo">Live Demo</div>
+        </a>
+        <a href="demos/transformers-js/index.html" class="cat-card">
+          <div class="cat-card-icon">⚡</div>
+          <div class="cat-card-title">Transformers.js Demo</div>
+          <div class="cat-card-desc">Hugging Face Transformers in the browser. NLP tasks, embeddings, classification — offline.</div>
+          <div class="cat-card-badge demo">Live Demo</div>
+        </a>
+        <a href="demos/onnx-web/index.html" class="cat-card">
+          <div class="cat-card-icon">🔷</div>
+          <div class="cat-card-title">ONNX Web Demo</div>
+          <div class="cat-card-desc">ONNX Runtime Web for cross-platform inference in browser. Whisper, encoders, and more.</div>
+          <div class="cat-card-badge demo">Live Demo</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section">
+      <h2 class="section-title">Filters</h2>
+      <div id="filters"></div>
+    </section>
+
+    <!-- Full catalog table -->
+    <section class="section">
+      <h2 class="section-title">Full Model Catalog</h2>
+      <div id="catalog"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; Open-source reference for AGI developers &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+    <p style="margin-top:8px">Data is community-maintained. Accuracy is best-effort. Always verify against official model cards.</p>
+  </footer>
+
+  <script src="assets/js/catalog.js"></script>
+  <script>
+    Catalog.initPage({
+      jsonPath: './data/models.json',
+      statsContainerId: 'stats',
+      tableContainerId: 'catalog',
+      filterContainerId: 'filters',
+      defaultFilters: {},
+      columns: [
+        'name','type','deployment','params','context','ram_min',
+        'storage_q4','modalities','on_device','offline','privacy',
+        'quantizations','ollama_name','license','links'
+      ],
+      pageTitle: 'AI Capabilities Catalog'
+    });
+  </script>
+</body>
+</html>

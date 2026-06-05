@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformers.js Demos — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  body { overflow-y: auto; }
+
+  .quick-demo-area {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+  }
+
+  .sentiment-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 12px;
+  }
+
+  .sentiment-input {
+    flex: 1;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .9rem;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .sentiment-input:focus { border-color: var(--accent); }
+
+  .sentiment-result {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    font-weight: 600;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .sentiment-result.positive { background: rgba(63,185,80,.12); border: 1px solid rgba(63,185,80,.3); color: var(--green); }
+  .sentiment-result.negative { background: rgba(248,81,73,.1); border: 1px solid rgba(248,81,73,.3); color: var(--red); }
+
+  .conf-bar-wrap { flex: 1; height: 6px; background: var(--bg-card2); border-radius: 3px; overflow: hidden; }
+  .conf-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+
+  .compat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .compat-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .compat-card-title { font-size: .85rem; font-weight: 700; margin-bottom: 4px; }
+  .compat-row { display: flex; justify-content: space-between; font-size: .78rem; }
+  .compat-row span:first-child { color: var(--text-muted); }
+
+  .tech-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .tech-badge.wasm   { background: rgba(88,166,255,.15); color: var(--accent); border: 1px solid rgba(88,166,255,.3); }
+  .tech-badge.gpu    { background: rgba(63,185,80,.12); color: var(--green); border: 1px solid rgba(63,185,80,.25); }
+  .tech-badge.onnx   { background: rgba(188,140,255,.15); color: var(--purple); border: 1px solid rgba(188,140,255,.3); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html">
+      <span class="brand-icon">🧠</span> AI Capabilities
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="../../pages/">Pages</a>
+      <span class="nav-demos-label">Demos:</span>
+      <a class="nav-link" href="../webllm/index.html">WebLLM</a>
+      <a class="nav-link active" href="index.html">Transformers.js</a>
+      <a class="nav-link" href="../onnx-web/index.html">ONNX Web</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="page-container" style="padding-top:0;padding-bottom:0">
+    <div class="hero-badge">Browser AI · WASM · ONNX</div>
+    <h1 class="hero-title">Transformers.js Demos</h1>
+    <p class="hero-subtitle">
+      Run Hugging Face models directly in your browser via ONNX Runtime WebAssembly.
+      No WebGPU required — works in any modern browser, fully offline after first download.
+    </p>
+    <div class="hero-actions">
+      <span class="tech-badge wasm">WebAssembly</span>
+      <span class="tech-badge onnx">ONNX Runtime</span>
+      <span class="tech-badge gpu">Optional WebGPU</span>
+    </div>
+  </div>
+</div>
+
+<div class="page-container">
+
+  <!-- How it works -->
+  <div class="section">
+    <h2 class="section-title">⚙️ How It Works</h2>
+    <div class="compare-grid">
+      <div class="compare-col">
+        <h3>Transformers.js</h3>
+        <ul>
+          <li>Port of Hugging Face Transformers library to JavaScript</li>
+          <li>Uses ONNX Runtime Web for model execution</li>
+          <li>Falls back to CPU/WASM — works in <strong>any</strong> modern browser</li>
+          <li>Models downloaded from Hugging Face CDN, cached in browser</li>
+          <li>Supports 1000+ tasks: NLP, vision, audio, multimodal</li>
+          <li>Easy <code>pipeline()</code> API — identical to Python transformers</li>
+        </ul>
+      </div>
+      <div class="compare-col">
+        <h3>vs. WebLLM (WebGPU)</h3>
+        <ul>
+          <li>WebLLM uses WebGPU for GPU-accelerated generation (much faster)</li>
+          <li>Transformers.js runs on CPU/WASM — slower but universally compatible</li>
+          <li>Transformers.js handles more task types (vision, audio, classification)</li>
+          <li>WebLLM focuses on chat/generation with larger LLMs</li>
+          <li>Both are fully private — no data leaves the browser</li>
+          <li>Choose based on browser support needs and task type</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick demo: Sentiment -->
+  <div class="section">
+    <h2 class="section-title">⚡ Quick Demo — Sentiment Analysis</h2>
+    <div class="quick-demo-area">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:14px">
+        Try it instantly — loads <code>Xenova/distilbert-base-uncased-finetuned-sst-2-english</code> (~67MB) in your browser.
+      </p>
+
+      <div class="status-row" style="margin-bottom:12px">
+        <div class="status-dot idle" id="sentDot"></div>
+        <span class="status-text" id="sentStatus">Click Analyze to load model</span>
+      </div>
+
+      <div class="progress-container" id="sentProgress" style="display:none;margin-bottom:12px">
+        <div class="progress-bar"><div class="progress-fill" id="sentFill"></div></div>
+        <div class="progress-label" id="sentProgressLabel">Loading…</div>
+      </div>
+
+      <div class="sentiment-input-row">
+        <input class="sentiment-input" id="sentInput" type="text"
+          placeholder="Type a sentence, e.g. 'I love this project!'"
+          value="Transformers.js is incredible — AI runs right in my browser!">
+        <button class="btn btn-primary" id="sentBtn" style="white-space:nowrap;padding:9px 16px">Analyze ✨</button>
+      </div>
+
+      <div class="sentiment-result" id="sentResult">
+        <span id="sentEmoji" style="font-size:1.5rem"></span>
+        <div style="flex:1">
+          <div id="sentLabel" style="font-size:1rem"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <div class="conf-bar-wrap"><div class="conf-bar-fill" id="sentConfBar"></div></div>
+            <span id="sentConf" style="font-size:.78rem;font-family:var(--mono);min-width:3.5rem;text-align:right"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo cards -->
+  <div class="section">
+    <h2 class="section-title">🗂 All Demos</h2>
+    <div class="card-grid">
+
+      <div class="cat-card" style="cursor:pointer" onclick="location.href='text-generation.html'">
+        <div class="cat-card-icon">✍️</div>
+        <div class="cat-card-title">Text Generation</div>
+        <div class="cat-card-desc">Generate continuations and chat replies with GPT-2, DistilGPT2, SmolLM2, BLOOM, and Qwen1.5.</div>
+        <div class="cat-card-badge demo">Demo</div>
+      </div>
+
+      <div class="cat-card" style="cursor:pointer" onclick="location.href='embeddings.html'">
+        <div class="cat-card-icon">🔍</div>
+        <div class="cat-card-title">Embeddings &amp; Semantic Search</div>
+        <div class="cat-card-desc">Sentence similarity, semantic search ranking, and PCA cluster visualization using all-MiniLM-L6-v2.</div>
+        <div class="cat-card-badge demo">Demo</div>
+      </div>
+
+      <div class="cat-card" style="cursor:pointer" onclick="location.href='vision.html'">
+        <div class="cat-card-icon">👁️</div>
+        <div class="cat-card-title">Vision &amp; Image AI</div>
+        <div class="cat-card-desc">Image classification (ViT), zero-shot classification (CLIP), object detection (DETR), and image captioning.</div>
+        <div class="cat-card-badge demo">Demo</div>
+      </div>
+
+      <a class="cat-card" href="#" onclick="return showComingSoon('Zero-shot Classification')">
+        <div class="cat-card-icon">🏷️</div>
+        <div class="cat-card-title">Zero-shot Classification</div>
+        <div class="cat-card-desc">Classify any text into custom categories without training. Uses nli-deberta-v3-small.</div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showComingSoon('Named Entity Recognition')">
+        <div class="cat-card-icon">🔖</div>
+        <div class="cat-card-title">Named Entity Recognition</div>
+        <div class="cat-card-desc">Identify people, places, organizations in text using bert-base-NER.</div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showComingSoon('Question Answering')">
+        <div class="cat-card-icon">❓</div>
+        <div class="cat-card-title">Question Answering</div>
+        <div class="cat-card-desc">Extractive QA — paste a context paragraph, ask a question, get the answer span. Uses distilbert-QA.</div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showComingSoon('Translation')">
+        <div class="cat-card-icon">🌐</div>
+        <div class="cat-card-title">Translation</div>
+        <div class="cat-card-desc">Translate between 200 languages using NLLB-200-distilled in your browser.</div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showComingSoon('Summarization')">
+        <div class="cat-card-icon">📝</div>
+        <div class="cat-card-title">Summarization</div>
+        <div class="cat-card-desc">Summarize long documents using BART or T5 models. Paste an article, get the key points.</div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="#" onclick="return showComingSoon('Text-to-Speech')">
+        <div class="cat-card-icon">🔊</div>
+        <div class="cat-card-title">Text-to-Speech</div>
+        <div class="cat-card-desc">Generate audio from text using SpeechT5 — hear synthesized speech directly in browser.</div>
+        <div class="cat-card-badge">Coming soon</div>
+      </a>
+
+      <a class="cat-card" href="index.html">
+        <div class="cat-card-icon">🎯</div>
+        <div class="cat-card-title">Sentiment Analysis</div>
+        <div class="cat-card-desc">Already live above — try it right on this page! Uses DistilBERT fine-tuned on SST-2.</div>
+        <div class="cat-card-badge demo">Live demo above</div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Browser compatibility -->
+  <div class="section">
+    <h2 class="section-title">🌐 Browser Compatibility</h2>
+    <div class="compat-grid">
+      <div class="compat-card">
+        <div class="compat-card-title">Chrome / Edge 88+</div>
+        <div class="compat-row"><span>WebAssembly</span><span style="color:var(--green)">✓ Full</span></div>
+        <div class="compat-row"><span>WebGPU</span><span style="color:var(--green)">✓ v113+</span></div>
+        <div class="compat-row"><span>SharedArrayBuffer</span><span style="color:var(--green)">✓ COOP headers</span></div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-card-title">Firefox 88+</div>
+        <div class="compat-row"><span>WebAssembly</span><span style="color:var(--green)">✓ Full</span></div>
+        <div class="compat-row"><span>WebGPU</span><span style="color:var(--yellow)">⚠ Partial (flags)</span></div>
+        <div class="compat-row"><span>SharedArrayBuffer</span><span style="color:var(--green)">✓</span></div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-card-title">Safari 15.2+</div>
+        <div class="compat-row"><span>WebAssembly</span><span style="color:var(--green)">✓ Full</span></div>
+        <div class="compat-row"><span>WebGPU</span><span style="color:var(--green)">✓ v17+ (macOS)</span></div>
+        <div class="compat-row"><span>SharedArrayBuffer</span><span style="color:var(--yellow)">⚠ Requires COOP</span></div>
+      </div>
+      <div class="compat-card">
+        <div class="compat-card-title">Mobile Browsers</div>
+        <div class="compat-row"><span>WebAssembly</span><span style="color:var(--green)">✓ iOS/Android</span></div>
+        <div class="compat-row"><span>WebGPU</span><span style="color:var(--red)">✗ Limited</span></div>
+        <div class="compat-row"><span>Performance</span><span style="color:var(--yellow)">⚠ Slow on CPU</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code snippet -->
+  <div class="section">
+    <h2 class="section-title">💻 Usage</h2>
+    <pre><code>// Load Transformers.js via CDN — no build step needed
+import { pipeline, env } from
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+// Disable local model lookup (use HF CDN)
+env.allowLocalModels = false;
+
+// Create a sentiment analysis pipeline — model downloads on first use
+const classifier = await pipeline(
+  'sentiment-analysis',
+  'Xenova/distilbert-base-uncased-finetuned-sst-2-english'
+);
+
+const result = await classifier("I love running AI in the browser!");
+// → [{ label: 'POSITIVE', score: 0.9998 }]
+
+// Text generation
+const generator = await pipeline('text-generation', 'Xenova/distilgpt2');
+const out = await generator("The future of AI is", { max_new_tokens: 50 });
+// → [{ generated_text: "The future of AI is ..." }]
+
+// Feature extraction (embeddings)
+const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+const embedding = await extractor("Hello world", { pooling: 'mean', normalize: true });
+// → Float32Array of 384 dimensions</code></pre>
+  </div>
+
+</div>
+
+<script type="module">
+import { pipeline, env } from
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+env.allowLocalModels = false;
+
+const $ = id => document.getElementById(id);
+let sentimentPipeline = null;
+
+function showComingSoon(name) {
+  alert(name + " demo is coming soon!");
+  return false;
+}
+window.showComingSoon = showComingSoon;
+
+$("sentBtn").addEventListener("click", runSentiment);
+$("sentInput").addEventListener("keydown", e => { if (e.key === "Enter") runSentiment(); });
+
+async function runSentiment() {
+  const text = $("sentInput").value.trim();
+  if (!text) return;
+
+  $("sentBtn").disabled = true;
+
+  if (!sentimentPipeline) {
+    setDot("loading", "Loading model…");
+    $("sentProgress").style.display = "block";
+
+    try {
+      sentimentPipeline = await pipeline(
+        "sentiment-analysis",
+        "Xenova/distilbert-base-uncased-finetuned-sst-2-english",
+        {
+          progress_callback: (p) => {
+            if (p.status === "progress" && p.total) {
+              const pct = Math.round(p.loaded / p.total * 100);
+              $("sentFill").style.width = pct + "%";
+              $("sentProgressLabel").textContent = `Downloading ${p.file || "model"} — ${pct}%`;
+            }
+          }
+        }
+      );
+      $("sentProgress").style.display = "none";
+    } catch (err) {
+      setDot("error", "Load failed: " + err.message);
+      $("sentBtn").disabled = false;
+      return;
+    }
+  }
+
+  setDot("loading", "Analyzing…");
+  try {
+    const [result] = await sentimentPipeline(text);
+    const label = result.label; // "POSITIVE" or "NEGATIVE"
+    const score = result.score;
+    const isPos = label === "POSITIVE";
+
+    const el = $("sentResult");
+    el.className = "sentiment-result " + (isPos ? "positive" : "negative");
+    el.style.display = "flex";
+    $("sentEmoji").textContent = isPos ? "😊" : "😞";
+    $("sentLabel").textContent = label + " sentiment";
+    $("sentConf").textContent  = (score * 100).toFixed(1) + "% conf.";
+    const fill = $("sentConfBar");
+    fill.style.width      = (score * 100) + "%";
+    fill.style.background = isPos ? "var(--green)" : "var(--red)";
+
+    setDot("ready", "Analysis complete");
+  } catch (err) {
+    setDot("error", err.message);
+  }
+  $("sentBtn").disabled = false;
+}
+
+function setDot(type, text) {
+  $("sentDot").className = "status-dot " + type;
+  $("sentStatus").textContent = text;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Path to On-Device AGI — AI Capabilities Catalog</title>
+  <meta name="description" content="A composition framework for achieving AGI using open-source models. Capability coverage table, pipeline architecture, hardware tiers, current gaps, and research frontiers.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <style>
+    /* Page-specific extras */
+    .agi-section { margin-top: 52px; }
+    .agi-section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .agi-section-title .icon { font-size: 1.4rem; }
+
+    /* AGI definition list */
+    .agi-goal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .agi-goal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .agi-goal-num {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: .85rem;
+      min-width: 20px;
+    }
+    .agi-goal-text {
+      font-size: .85rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* Capability table */
+    .cap-table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: auto; }
+    .cap-table { width: 100%; border-collapse: collapse; font-size: .85rem; min-width: 720px; }
+    .cap-table th {
+      background: var(--bg-card2);
+      color: var(--text-muted);
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .cap-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-dim);
+      vertical-align: top;
+    }
+    .cap-table tr:last-child td { border-bottom: none; }
+    .cap-table tr:hover td { background: rgba(88,166,255,.04); }
+    .cap-table td:first-child { font-weight: 600; color: var(--text); }
+    .cap-table td.model-cell { color: var(--accent2); font-weight: 500; }
+    .cap-table td.size-cell { color: var(--orange); font-weight: 600; white-space: nowrap; }
+    .cap-table td.limit-cell { color: var(--text-muted); font-size: .8rem; }
+
+    .ondevice-yes  { color: var(--green); font-weight: 700; }
+    .ondevice-no   { color: var(--red); }
+    .ondevice-part { color: var(--yellow); font-weight: 600; }
+
+    /* Hardware tier cards */
+    .hw-tier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .hw-tier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+    .hw-tier-badge {
+      display: inline-block;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .tier-1 { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+    .tier-2 { background: rgba(88,166,255,.15); color: var(--accent2); border: 1px solid rgba(88,166,255,.3); }
+    .tier-3 { background: rgba(188,140,255,.15); color: var(--purple); border: 1px solid rgba(188,140,255,.3); }
+    .tier-4 { background: rgba(255,166,87,.15); color: var(--orange); border: 1px solid rgba(255,166,87,.3); }
+    .tier-5 { background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3); }
+    .hw-tier-card h3 { font-size: 1rem; margin-bottom: 4px; }
+    .hw-tier-card .hw-example { font-size: .8rem; color: var(--text-muted); margin-bottom: 10px; }
+    .hw-tier-card ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .hw-tier-card ul li { font-size: .82rem; color: var(--text-muted); display: flex; gap: 6px; }
+    .hw-tier-card ul li::before { content: "→"; color: var(--accent); flex-shrink: 0; }
+
+    /* Pipeline */
+    .pipeline { display: flex; flex-direction: column; gap: 6px; }
+    .pipeline-layer {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .pipeline-layer:hover { border-color: var(--accent); }
+    .pipeline-layer-num {
+      background: var(--accent);
+      color: #fff;
+      font-size: .75rem;
+      font-weight: 700;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pipeline-layer-content { flex: 1; }
+    .pipeline-layer-title { font-weight: 700; font-size: .95rem; margin-bottom: 4px; }
+    .pipeline-layer-desc  { font-size: .82rem; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
+    .pipeline-layer-models { display: flex; flex-wrap: wrap; gap: 5px; }
+    .pipeline-arrow {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 1.4rem;
+      line-height: 1;
+      margin: 2px 0 2px 22px;
+    }
+    .model-pill {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(88,166,255,.12);
+      border: 1px solid rgba(88,166,255,.25);
+      color: var(--accent2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="open-source.html" class="nav-link">Open Source</a></li>
+        <li><a href="proprietary.html" class="nav-link">Proprietary</a></li>
+        <li><a href="mobile.html" class="nav-link">Mobile</a></li>
+        <li><a href="desktop.html" class="nav-link">Desktop</a></li>
+        <li><a href="datacenter.html" class="nav-link">Datacenter</a></li>
+        <li><a href="agi-roadmap.html" class="nav-link active">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="../demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="../demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="../demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">Research Roadmap</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Path to On-Device AGI</span>
+      </h1>
+      <p class="hero-subtitle">
+        A composition framework for achieving Artificial General Intelligence using open-source models —
+        organized by capability, hardware tier, and the gaps that remain.
+      </p>
+      <div class="hero-actions">
+        <a href="mobile.html" class="btn btn-primary">Mobile Models</a>
+        <a href="open-source.html" class="btn btn-secondary">Full Open Source Catalog</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- ============================================================
+         WHAT IS AGI?
+    ============================================================ -->
+    <section class="agi-section">
+      <h2 class="agi-section-title"><span class="icon">🧠</span> What Is AGI? — Capability Goals</h2>
+      <p style="color:var(--text-muted);font-size:.9rem;margin-bottom:18px;max-width:760px">
+        We define AGI not as a single model but as a system that exhibits the full breadth of
+        cognitive capabilities a skilled human professional can perform — across reasoning, perception,
+        communication, tool use, and self-directed learning. The ten core capability domains:
+      </p>
+      <div class="agi-goal-grid">
+        <div class="agi-goal">
+          <div class="agi-goal-num">01</div>
+          <div class="agi-goal-text">Reasoning &amp; Planning — multi-step deduction, hypothesis formation, long-horizon goal decomposition</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">02</div>
+          <div class="agi-goal-text">Long-term Memory — persistent context beyond a single session; episodic, semantic, and procedural recall</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">03</div>
+          <div class="agi-goal-text">Multimodal Perception — reading text, interpreting images, understanding audio, processing video, sensor data</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">04</div>
+          <div class="agi-goal-text">Tool Use &amp; Agency — calling APIs, browsing the web, running code, managing files, controlling applications</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">05</div>
+          <div class="agi-goal-text">Natural Language Mastery — fluent in dozens of languages; nuance, humor, ambiguity, persuasion</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">06</div>
+          <div class="agi-goal-text">Code Generation &amp; Debugging — produce, run, test, and fix code across all mainstream languages</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">07</div>
+          <div class="agi-goal-text">Scientific Reasoning — mathematical proof, hypothesis generation, reading and critiquing research papers</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">08</div>
+          <div class="agi-goal-text">Grounded World Model — understanding physics, causality, time, social dynamics without hallucination</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">09</div>
+          <div class="agi-goal-text">Self-Improvement — ability to fine-tune or adapt its own behavior based on feedback and experience</div>
+        </div>
+        <div class="agi-goal">
+          <div class="agi-goal-num">10</div>
+          <div class="agi-goal-text">Creative Generation — novel text, images, music, and solutions that are genuinely new, not recombinant</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CAPABILITY COVERAGE TABLE
+    ============================================================ -->
+    <section class="agi-section">
+      <h2 class="agi-section-title"><span class="icon">📊</span> Capability Coverage — Best Open-Source Models Today</h2>
+      <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:18px;max-width:760px">
+        For each AGI capability, the best current open-source model, its size, whether it can run on-device,
+        and the key limitation vs. frontier proprietary models.
+      </p>
+      <div class="cap-table-wrap">
+        <table class="cap-table">
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Best Open Model</th>
+              <th>Size</th>
+              <th>On-Device</th>
+              <th>Key Limitation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>General Language</td>
+              <td class="model-cell">Llama 3.3 70B</td>
+              <td class="size-cell">70B</td>
+              <td><span class="ondevice-part">Desktop+</span></td>
+              <td class="limit-cell">~5–10% quality gap vs GPT-4o on open-ended tasks</td>
+            </tr>
+            <tr>
+              <td>Reasoning / Math</td>
+              <td class="model-cell">DeepSeek R1 (671B)</td>
+              <td class="size-cell">671B</td>
+              <td><span class="ondevice-no">Datacenter only</span></td>
+              <td class="limit-cell">Too large for any personal hardware; requires GPU cluster</td>
+            </tr>
+            <tr>
+              <td>Reasoning — Edge</td>
+              <td class="model-cell">DeepSeek-R1-Distill-Qwen 1.5B</td>
+              <td class="size-cell">1.5B</td>
+              <td><span class="ondevice-yes">Mobile ✓</span></td>
+              <td class="limit-cell">Significantly reduced accuracy vs full R1; suitable for structured tasks</td>
+            </tr>
+            <tr>
+              <td>Reasoning — Desktop</td>
+              <td class="model-cell">DeepSeek-R1-Distill-Qwen 7B</td>
+              <td class="size-cell">7B</td>
+              <td><span class="ondevice-yes">Desktop ✓</span></td>
+              <td class="limit-cell">Good for math/coding; lags on complex multi-step planning</td>
+            </tr>
+            <tr>
+              <td>Code Generation</td>
+              <td class="model-cell">Qwen2.5-Coder 32B</td>
+              <td class="size-cell">32B</td>
+              <td><span class="ondevice-part">Desktop (32 GB)</span></td>
+              <td class="limit-cell">Rivals GPT-4o on most benchmarks; slightly behind on large-scale refactoring</td>
+            </tr>
+            <tr>
+              <td>Code Generation — Small</td>
+              <td class="model-cell">Qwen2.5-Coder 7B</td>
+              <td class="size-cell">7B</td>
+              <td><span class="ondevice-yes">Desktop ✓</span></td>
+              <td class="limit-cell">Good for completion and explanation; weaker on complex architecture design</td>
+            </tr>
+            <tr>
+              <td>Vision / Perception</td>
+              <td class="model-cell">Gemma 3 27B</td>
+              <td class="size-cell">27B</td>
+              <td><span class="ondevice-part">Desktop (32 GB)</span></td>
+              <td class="limit-cell">No audio; video only as frames; lags GPT-4V on complex scenes</td>
+            </tr>
+            <tr>
+              <td>Multimodal — Mobile</td>
+              <td class="model-cell">Gemma 3n E4B</td>
+              <td class="size-cell">4B eff.</td>
+              <td><span class="ondevice-yes">Mobile ✓</span></td>
+              <td class="limit-cell">Limited capability vs desktop models; audio understanding is basic</td>
+            </tr>
+            <tr>
+              <td>Multimodal — Vision</td>
+              <td class="model-cell">InternVL2.5 8B</td>
+              <td class="size-cell">8B</td>
+              <td><span class="ondevice-yes">Desktop ✓</span></td>
+              <td class="limit-cell">Strong on documents and charts; weaker on natural scene understanding</td>
+            </tr>
+            <tr>
+              <td>Long-term Memory</td>
+              <td class="model-cell">RAG (Chroma + all-MiniLM)</td>
+              <td class="size-cell">22M embed</td>
+              <td><span class="ondevice-yes">Mobile ✓</span></td>
+              <td class="limit-cell">External system, not native model memory; retrieval quality depends on chunking</td>
+            </tr>
+            <tr>
+              <td>Tool Use / Agents</td>
+              <td class="model-cell">Llama 3.1 70B (function calling)</td>
+              <td class="size-cell">70B</td>
+              <td><span class="ondevice-part">Desktop+</span></td>
+              <td class="limit-cell">Reliable tool calling but less robust than Claude 3.7 on complex multi-tool chains</td>
+            </tr>
+            <tr>
+              <td>Tool Use — Small</td>
+              <td class="model-cell">Qwen2.5 7B (function calling)</td>
+              <td class="size-cell">7B</td>
+              <td><span class="ondevice-yes">Desktop ✓</span></td>
+              <td class="limit-cell">Works for 1–2 tool calls; fails on complex sequential tool use</td>
+            </tr>
+            <tr>
+              <td>Speech Recognition</td>
+              <td class="model-cell">Whisper Large v3</td>
+              <td class="size-cell">1.5B</td>
+              <td><span class="ondevice-yes">Desktop ✓</span></td>
+              <td class="limit-cell">Input only — transcribes speech, does not generate speech. Streaming via whisper.cpp</td>
+            </tr>
+            <tr>
+              <td>Text-to-Speech</td>
+              <td class="model-cell">Kokoro / Piper TTS</td>
+              <td class="size-cell">&lt;1B</td>
+              <td><span class="ondevice-yes">Mobile ✓</span></td>
+              <td class="limit-cell">Good voice quality; lacks the emotional range of ElevenLabs / Gemini Live</td>
+            </tr>
+            <tr>
+              <td>Image Generation</td>
+              <td class="model-cell">Flux.1 Dev / SDXL</td>
+              <td class="size-cell">12B / 7B</td>
+              <td><span class="ondevice-part">Desktop (12 GB VRAM)</span></td>
+              <td class="limit-cell">Not an LLM; separate diffusion pipeline. Mobile requires Flash/Schnell variants</td>
+            </tr>
+            <tr>
+              <td>Scientific Reasoning</td>
+              <td class="model-cell">DeepSeek R1</td>
+              <td class="size-cell">671B</td>
+              <td><span class="ondevice-no">Datacenter only</span></td>
+              <td class="limit-cell">Excellent math/physics; lacks experiment design and wet-lab knowledge</td>
+            </tr>
+            <tr>
+              <td>Multilingual (23 langs)</td>
+              <td class="model-cell">Aya Expanse 32B</td>
+              <td class="size-cell">32B</td>
+              <td><span class="ondevice-part">Desktop (32 GB)</span></td>
+              <td class="limit-cell">Covers 23 languages well; underperforms on low-resource languages vs GPT-4o</td>
+            </tr>
+            <tr>
+              <td>Embeddings / RAG</td>
+              <td class="model-cell">all-MiniLM-L6-v2</td>
+              <td class="size-cell">22M</td>
+              <td><span class="ondevice-yes">Mobile ✓</span></td>
+              <td class="limit-cell">Fast and cheap; embedding quality below text-embedding-3-large (OpenAI)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         COMPOSITION ARCHITECTURE
+    ============================================================ -->
+    <section class="agi-section">
+      <h2 class="agi-section-title"><span class="icon">⚙</span> Proposed AGI Composition Architecture</h2>
+      <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:22px;max-width:760px">
+        No single model covers all AGI capabilities today. The following layered pipeline architecture
+        assembles general intelligence from specialized open-source modules. Each layer can be swapped
+        independently as better models emerge.
+      </p>
+
+      <div class="pipeline">
+
+        <div class="pipeline-layer">
+          <div class="pipeline-layer-num">1</div>
+          <div class="pipeline-layer-content">
+            <div class="pipeline-layer-title">Perception Layer — Sense the World</div>
+            <div class="pipeline-layer-desc">
+              Convert all modalities to text/tokens that the reasoning core can process.
+              Audio is transcribed by Whisper. Images and video frames are described by a vision model.
+              Documents (PDF, HTML, code) are parsed into structured text by dedicated extractors.
+            </div>
+            <div class="pipeline-layer-models">
+              <span class="model-pill">Whisper Large v3 (audio→text)</span>
+              <span class="model-pill">Gemma 3 27B / InternVL2.5 (vision→text)</span>
+              <span class="model-pill">Docling / PyMuPDF (documents)</span>
+              <span class="model-pill">Gemma 3n E4B (mobile multimodal)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline-arrow">↓</div>
+
+        <div class="pipeline-layer">
+          <div class="pipeline-layer-num">2</div>
+          <div class="pipeline-layer-content">
+            <div class="pipeline-layer-title">Memory Layer — Remember and Retrieve</div>
+            <div class="pipeline-layer-desc">
+              Convert all knowledge to embeddings and store in a local vector database.
+              At query time, retrieve the top-k relevant chunks and inject into the reasoning core's context.
+              This is the current best-practice replacement for true long-term memory in LLMs.
+            </div>
+            <div class="pipeline-layer-models">
+              <span class="model-pill">all-MiniLM-L6-v2 (embeddings)</span>
+              <span class="model-pill">ChromaDB (vector store, local)</span>
+              <span class="model-pill">FAISS (offline, no server needed)</span>
+              <span class="model-pill">LanceDB (mobile/edge friendly)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline-arrow">↓</div>
+
+        <div class="pipeline-layer">
+          <div class="pipeline-layer-num">3</div>
+          <div class="pipeline-layer-content">
+            <div class="pipeline-layer-title">Reasoning Core — Think and Plan</div>
+            <div class="pipeline-layer-desc">
+              The central language model. Receives all context (current input, retrieved memories,
+              tool results) and produces the next action or response. Scale to the largest model
+              your hardware supports. Router logic can dispatch to specialist modules for focused tasks.
+            </div>
+            <div class="pipeline-layer-models">
+              <span class="model-pill">Llama 3.3 70B (desktop/datacenter)</span>
+              <span class="model-pill">Qwen2.5 72B (desktop/datacenter)</span>
+              <span class="model-pill">Llama 3.1 8B (8 GB laptop)</span>
+              <span class="model-pill">Gemma 3 4B (mobile)</span>
+              <span class="model-pill">DeepSeek R1 distill (reasoning tasks)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline-arrow">↓</div>
+
+        <div class="pipeline-layer">
+          <div class="pipeline-layer-num">4</div>
+          <div class="pipeline-layer-content">
+            <div class="pipeline-layer-title">Specialist Modules — Depth in Domain</div>
+            <div class="pipeline-layer-desc">
+              Task-specific models invoked by the reasoning core as tools. Code generation,
+              mathematical reasoning, translation, and summarization are handled by fine-tuned
+              specialists that outperform general models in their domain.
+            </div>
+            <div class="pipeline-layer-models">
+              <span class="model-pill">Qwen2.5-Coder 32B (code)</span>
+              <span class="model-pill">DeepSeek-R1-Distill 7B (math)</span>
+              <span class="model-pill">Aya Expanse 32B (translation)</span>
+              <span class="model-pill">Phi-4 (structured reasoning)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline-arrow">↓</div>
+
+        <div class="pipeline-layer">
+          <div class="pipeline-layer-num">5</div>
+          <div class="pipeline-layer-content">
+            <div class="pipeline-layer-title">Action Layer — Affect the World</div>
+            <div class="pipeline-layer-desc">
+              The agent executes actions in response to the reasoning core's plan. Tool calls are
+              structured JSON parsed from model output. Actions include web browsing, code execution
+              in a sandbox, file I/O, calendar management, and calling external APIs.
+            </div>
+            <div class="pipeline-layer-models">
+              <span class="model-pill">Tool calling (OpenAI-compatible format)</span>
+              <span class="model-pill">Code sandbox (e2b.dev / local Docker)</span>
+              <span class="model-pill">Browser use (Playwright / browser-use)</span>
+              <span class="model-pill">File I/O (local filesystem)</span>
+              <span class="model-pill">Web search (SearXNG local)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline-arrow">↓</div>
+
+        <div class="pipeline-layer">
+          <div class="pipeline-layer-num">6</div>
+          <div class="pipeline-layer-content">
+            <div class="pipeline-layer-title">Output Layer — Communicate Results</div>
+            <div class="pipeline-layer-desc">
+              Convert the reasoning core's text output to the appropriate modality for delivery.
+              Text responses stream to the UI. TTS converts text to speech for voice interfaces.
+              Image generation models produce visual output for design and creative tasks.
+            </div>
+            <div class="pipeline-layer-models">
+              <span class="model-pill">Kokoro TTS (text→speech, local)</span>
+              <span class="model-pill">Piper TTS (lightweight, mobile)</span>
+              <span class="model-pill">Flux.1 / SDXL (text→image)</span>
+              <span class="model-pill">Streaming text UI (standard)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+         HARDWARE TIERS
+    ============================================================ -->
+    <section class="agi-section">
+      <h2 class="agi-section-title"><span class="icon">💾</span> Hardware Tiers for On-Device AGI</h2>
+      <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:20px;max-width:760px">
+        The composition architecture above can be deployed at five hardware tiers. Each tier
+        represents a realistic target for assembling a working AGI pipeline today, with the
+        models scaled appropriately to available compute.
+      </p>
+
+      <div class="hw-tier-grid">
+        <div class="hw-tier-card">
+          <div class="hw-tier-badge tier-1">Tier 1 — Mobile AGI</div>
+          <h3>Smartphone</h3>
+          <div class="hw-example">iPhone 15 Pro, Pixel 9 Pro, Samsung S24 Ultra</div>
+          <ul>
+            <li>Gemma 3n E4B — perception + language (4B eff.)</li>
+            <li>Whisper tiny — speech recognition (39M)</li>
+            <li>all-MiniLM-L6-v2 — embeddings (22M)</li>
+            <li>LanceDB — local vector memory</li>
+            <li>Piper TTS — voice output</li>
+            <li>Total: ~3–4 GB RAM active</li>
+            <li>Runtime: MLC LLM / MediaPipe / Core ML</li>
+          </ul>
+        </div>
+
+        <div class="hw-tier-card">
+          <div class="hw-tier-badge tier-2">Tier 2 — Edge AGI</div>
+          <h3>SBC / Embedded</h3>
+          <div class="hw-example">Raspberry Pi 5 (8 GB), Jetson Orin NX, Orange Pi</div>
+          <ul>
+            <li>Phi-4 Mini Q4 — language reasoning (3.8B)</li>
+            <li>Whisper base — speech recognition (74M)</li>
+            <li>Gemma 3 4B — multimodal (optional)</li>
+            <li>FAISS — local vector store</li>
+            <li>Kokoro TTS — voice output</li>
+            <li>Total: ~4–6 GB RAM active</li>
+            <li>Runtime: llama.cpp + whisper.cpp</li>
+          </ul>
+        </div>
+
+        <div class="hw-tier-card">
+          <div class="hw-tier-badge tier-3">Tier 3 — Desktop AGI</div>
+          <h3>Laptop / PC</h3>
+          <div class="hw-example">MacBook Pro M3, Windows PC 16 GB RAM</div>
+          <ul>
+            <li>Llama 3.1 8B Q4 — reasoning core</li>
+            <li>Whisper Large v3 — speech</li>
+            <li>InternVL2.5 8B — vision</li>
+            <li>Qwen2.5-Coder 7B — code specialist</li>
+            <li>all-MiniLM + ChromaDB — memory</li>
+            <li>Total: ~8–12 GB RAM active</li>
+            <li>Runtime: Ollama + llama.cpp</li>
+          </ul>
+        </div>
+
+        <div class="hw-tier-card">
+          <div class="hw-tier-badge tier-4">Tier 4 — Workstation AGI</div>
+          <h3>High-End Workstation</h3>
+          <div class="hw-example">Mac Studio M2 Ultra, PC with 64 GB + RTX 4090</div>
+          <ul>
+            <li>Llama 3.3 70B Q4 — main reasoning</li>
+            <li>Qwen2.5-Coder 32B — code specialist</li>
+            <li>Gemma 3 27B — vision + multimodal</li>
+            <li>DeepSeek-R1-Distill 7B — math reasoning</li>
+            <li>Flux.1 Dev Q4 — image generation</li>
+            <li>Total: 80–100 GB RAM needed</li>
+            <li>Runtime: MLX / Ollama / vLLM</li>
+          </ul>
+        </div>
+
+        <div class="hw-tier-card">
+          <div class="hw-tier-badge tier-5">Tier 5 — Datacenter AGI</div>
+          <h3>GPU Cluster</h3>
+          <div class="hw-example">4–8× A100 80GB, H100 nodes</div>
+          <ul>
+            <li>DeepSeek R1 671B — frontier reasoning</li>
+            <li>DeepSeek V3 685B — general intelligence</li>
+            <li>Flux.1 Dev FP16 — image generation</li>
+            <li>Full multimodal pipeline in parallel</li>
+            <li>1T+ total parameters accessible</li>
+            <li>Runtime: vLLM + SGLang + tensor parallelism</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CURRENT GAPS
+    ============================================================ -->
+    <section class="agi-section">
+      <h2 class="agi-section-title"><span class="icon">⚠</span> Current Gaps — Where Open Source Still Lags</h2>
+      <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:20px;max-width:760px">
+        These are the genuine capability gaps where today's best open-source models fall short of
+        frontier proprietary systems or where no model (open or closed) yet achieves reliable performance.
+      </p>
+      <div class="gap-grid">
+        <div class="gap-card">
+          <div class="gap-card-title">No True World Model</div>
+          <div class="gap-card-desc">
+            LLMs learn statistical patterns, not causal physical models. They hallucinate physics,
+            make basic spatial reasoning errors, and cannot simulate future states reliably.
+            Neuro-symbolic hybrids and world model research (Genie 2, JEPA) are early-stage.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">No Continuous Learning</div>
+          <div class="gap-card-desc">
+            Open models have a training cutoff. In-context learning and RAG are workarounds,
+            not true adaptation. On-device LoRA fine-tuning exists but is experimental.
+            Catastrophic forgetting remains unsolved at deployment scale.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">Unreliable Long-Horizon Planning</div>
+          <div class="gap-card-desc">
+            Multi-step agentic tasks with 20+ tool calls fail catastrophically more often than
+            not. Error propagation across long chains degrades rapidly. ReAct, Tree-of-Thought,
+            and MCTS-guided planning show promise but are not production-ready at scale.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">Common Sense Grounding</div>
+          <div class="gap-card-desc">
+            Models pass Winograd schemas but still make embarrassing commonsense errors.
+            They lack the embodied experience that grounds human intuition about objects,
+            effort, time, and social dynamics. Bespoke benchmarks reveal systematic failure modes.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">Native Video Understanding</div>
+          <div class="gap-card-desc">
+            Open-source video models lag 12–18 months behind Gemini and GPT-4V for temporal
+            reasoning in video. Processing long video (1h+) efficiently on-device remains
+            an unsolved engineering problem.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">Real-Time Voice Dialogue</div>
+          <div class="gap-card-desc">
+            GPT-4o Realtime and Gemini Live demonstrate end-to-end voice interaction with
+            natural interruption and emotion. Open-source equivalents (Moshi, Ichigo) exist
+            but lag in quality and have high latency on consumer hardware.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">Reliable Self-Evaluation</div>
+          <div class="gap-card-desc">
+            Models cannot reliably judge the quality of their own outputs. Self-consistency
+            and LLM-as-judge approaches partially address this but fail on subtle errors.
+            Calibrated uncertainty quantification remains an open research problem.
+          </div>
+        </div>
+        <div class="gap-card">
+          <div class="gap-card-title">Efficient Long Context on Edge</div>
+          <div class="gap-card-desc">
+            128K token context requires enormous KV cache memory. On a phone with 6 GB RAM,
+            usable context is effectively 4K–8K. Flash attention and linear attention research
+            are closing this gap but not yet in mainline mobile deployments.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         RESEARCH FRONTIERS
+    ============================================================ -->
+    <section class="agi-section">
+      <h2 class="agi-section-title"><span class="icon">🔬</span> Research Frontiers — Techniques to Watch</h2>
+      <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:20px;max-width:760px">
+        These emerging techniques are likely to dramatically change what is possible in on-device AGI
+        over the next 12–24 months.
+      </p>
+      <div class="research-grid">
+        <div class="research-card">
+          <div class="research-card-title">State Space Models (SSMs / Mamba)</div>
+          <div class="research-card-desc">
+            Linear-time sequence models that scale to million-token context with constant memory.
+            Mamba-2 and Falcon Mamba show competitive quality. Hybrid Transformer+Mamba
+            architectures (Jamba, Zamba) are reaching production quality.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">MoE Scaling Laws</div>
+          <div class="research-card-desc">
+            Mixture-of-experts models achieve better quality per active FLOP than dense models.
+            DeepSeek's success has triggered a wave of open MoE releases. Expect 10× more
+            MoE models in the next year as the paradigm proves its efficiency.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">Speculative Decoding</div>
+          <div class="research-card-desc">
+            A small "draft" model generates candidate tokens cheaply; the large model verifies
+            in parallel. Delivers 2–4× speedup with no quality loss. Widely deployed in vLLM
+            and llama.cpp. Enables faster mobile inference without reducing model size.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">Model Merging (DARE/TIES/SLERP)</div>
+          <div class="research-card-desc">
+            Combine multiple fine-tuned models into one without retraining. Mergekit enables
+            anyone to blend coding, reasoning, and instruction-following capabilities in a
+            single model. Community merges often outperform individual fine-tunes.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">1-Bit LLMs (BitNet)</div>
+          <div class="research-card-desc">
+            Microsoft's BitNet b1.58 represents every weight as {-1, 0, +1}. This enables
+            multiplication-free inference and 8–16× memory reduction. Early results at 3B/7B
+            scale are promising; 70B production-quality 1-bit models are on the horizon.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">On-Device LoRA Training</div>
+          <div class="research-card-desc">
+            Fine-tuning LLMs directly on a smartphone or laptop using low-rank adapters.
+            Apple MLX supports LoRA fine-tuning on M-series Macs. Mobile LoRA (100–500MB)
+            could enable truly personalized on-device models that learn from your data.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">Extended Thinking / Chain-of-Thought</div>
+          <div class="research-card-desc">
+            Models that allocate variable "thinking time" before responding (DeepSeek R1,
+            o1/o3 style). Quality scales with compute at inference time. Distilling
+            reasoning traces into smaller models (1.5B–7B) makes this accessible on-device.
+          </div>
+        </div>
+        <div class="research-card">
+          <div class="research-card-title">Multi-Agent Frameworks</div>
+          <div class="research-card-desc">
+            AutoGen, LangGraph, and CrewAI enable multiple specialized models to collaborate
+            on complex tasks. A 3B mobile model as the coordinator and specialist 7B models
+            for subtasks could approximate much larger single-model performance.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom links -->
+    <section class="agi-section">
+      <div class="info-box">
+        <strong>Want to explore the models?</strong> Browse by deployment target:
+        <a href="mobile.html">Mobile models</a> &mdash;
+        <a href="desktop.html">Desktop models</a> &mdash;
+        <a href="datacenter.html">Datacenter models</a> &mdash;
+        <a href="open-source.html">All open source</a>.
+        Or run models directly in your browser in our
+        <a href="../demos/webllm/index.html">WebLLM demo</a>.
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; AGI Roadmap &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+    <p style="margin-top:8px">This roadmap represents the state of open-source AI as of June 2026. The field moves fast — verify model capabilities against current benchmarks.</p>
+  </footer>
+
+</body>
+</html>

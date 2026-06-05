@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embeddings &amp; Semantic Search — Transformers.js — AI Capabilities</title>
+<link rel="stylesheet" href="../../assets/css/styles.css">
+<style>
+  body { overflow-y: auto; }
+
+  .embed-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+  }
+
+  .embed-sidebar {
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .embed-main {
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .tab-content-area { min-height: 300px; }
+
+  /* Sentence similarity */
+  .sim-inputs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .sim-inputs textarea {
+    width: 100%;
+    height: 70px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .875rem;
+    padding: 9px 11px;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .sim-inputs textarea:focus { border-color: var(--accent); }
+
+  .sim-score-display {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-top: 12px;
+  }
+  .sim-number { font-size: 2.2rem; font-weight: 700; font-family: var(--mono); min-width: 5.5rem; }
+  .sim-track { flex: 1; height: 8px; background: var(--bg-card); border-radius: 4px; overflow: hidden; }
+  .sim-fill  { height: 100%; border-radius: 4px; transition: width .4s ease, background .4s; }
+  .sim-label { font-size: .82rem; color: var(--text-muted); margin-top: 4px; }
+
+  /* Search */
+  .search-docs { width: 100%; height: 100px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--font); font-size: .82rem; padding: 8px 10px; resize: vertical; outline: none; transition: border-color .15s; margin-bottom: 8px; }
+  .search-docs:focus { border-color: var(--accent); }
+
+  .search-query-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .search-query-input { flex: 1; background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--font); font-size: .88rem; padding: 9px 11px; outline: none; transition: border-color .15s; }
+  .search-query-input:focus { border-color: var(--accent); }
+
+  /* PCA */
+  .pca-textarea { width: 100%; height: 120px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: var(--font); font-size: .82rem; padding: 8px 10px; resize: vertical; outline: none; transition: border-color .15s; }
+  .pca-textarea:focus { border-color: var(--accent); }
+
+  canvas#pcaCanvas {
+    display: block;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .pca-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .pca-legend-item { display: flex; align-items: center; gap: 5px; font-size: .78rem; color: var(--text-muted); }
+  .pca-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .result-score-bar { height: 4px; background: var(--bg-card2); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+  .result-score-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="nav-brand" href="../../index.html"><span class="brand-icon">🧠</span> AI Capabilities</a>
+    <div class="nav-links">
+      <a class="nav-link" href="../../index.html">Home</a>
+      <a class="nav-link" href="index.html">Transformers.js</a>
+      <a class="nav-link" href="text-generation.html">Text Gen</a>
+      <a class="nav-link active" href="embeddings.html">Embeddings</a>
+      <a class="nav-link" href="vision.html">Vision</a>
+    </div>
+  </div>
+</nav>
+
+<div class="embed-layout">
+
+  <!-- Sidebar -->
+  <aside class="embed-sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Model</div>
+      <div class="model-info-card" style="margin-bottom:4px">
+        <div class="model-info-row"><span>Model</span><span>all-MiniLM-L6-v2</span></div>
+        <div class="model-info-row"><span>Dimensions</span><span>384</span></div>
+        <div class="model-info-row"><span>Size</span><span>~80 MB</span></div>
+        <div class="model-info-row"><span>Runtime</span><span>WASM / CPU</span></div>
+      </div>
+      <button class="load-btn" id="loadBtn">⬇ Load Embedding Model</button>
+    </div>
+
+    <div class="sidebar-section" id="progressSection" style="display:none">
+      <div class="progress-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-label" id="progressLabel">Downloading…</div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-dot idle" id="statusDot"></div>
+      <span class="status-text" id="statusText">Not loaded</span>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">About</div>
+      <div class="info-box" style="font-size:.78rem">
+        <strong>all-MiniLM-L6-v2</strong> maps sentences to a 384-dimensional dense vector space.
+        Cosine similarity between normalized vectors measures semantic relatedness (0 = unrelated, 1 = identical).
+      </div>
+    </div>
+
+    <hr class="sidebar-divider">
+
+    <div class="token-stats-row">
+      <div class="token-stat"><span>Embeddings computed</span><span id="statCount">0</span></div>
+      <div class="token-stat"><span>Last embed time</span><span id="statTime">—</span></div>
+    </div>
+
+  </aside>
+
+  <!-- Main -->
+  <main class="embed-main">
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="similarity">Sentence Similarity</button>
+      <button class="tab-btn" data-tab="search">Semantic Search</button>
+      <button class="tab-btn" data-tab="pca">Cluster Visualization (PCA)</button>
+    </div>
+
+    <!-- TAB: Sentence Similarity -->
+    <div class="tab-pane active" id="tab-similarity">
+      <div class="sim-inputs">
+        <div>
+          <div class="sidebar-label" style="margin-bottom:4px">Sentence A</div>
+          <textarea id="sentA">A man is eating food.</textarea>
+        </div>
+        <div>
+          <div class="sidebar-label" style="margin-bottom:4px">Sentence B</div>
+          <textarea id="sentB">Someone is eating a meal.</textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="simBtn" disabled style="margin-bottom:4px">Compute Similarity</button>
+
+      <div id="simResult" style="display:none">
+        <div class="sim-score-display">
+          <div>
+            <div class="sim-number" id="simScore">—</div>
+            <div class="sim-label" id="simVerdict"></div>
+          </div>
+          <div style="flex:1">
+            <div class="sim-track"><div class="sim-fill" id="simFill"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-dim);margin-top:3px">
+              <span>0.0 (unrelated)</span><span>1.0 (identical)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="sidebar-label" style="margin-bottom:8px">Example pairs to try</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <button class="example-btn" data-a="The dog is playing in the park." data-b="A puppy runs through the grass.">Dog / puppy playing</button>
+          <button class="example-btn" data-a="Machine learning is a subset of artificial intelligence." data-b="Deep learning uses neural networks.">ML vs deep learning</button>
+          <button class="example-btn" data-a="I love sunny days at the beach." data-b="The quarterly earnings report is excellent.">Very different topics</button>
+          <button class="example-btn" data-a="The car is red." data-b="The automobile is red.">Near synonyms</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Semantic Search -->
+    <div class="tab-pane" id="tab-search">
+      <div class="sidebar-label" style="margin-bottom:4px">Document Collection (one per line)</div>
+      <textarea class="search-docs" id="searchDocs">The quick brown fox jumps over the lazy dog.
+Machine learning models learn patterns from data.
+Paris is the capital of France and a major European city.
+Photosynthesis converts sunlight into chemical energy.
+The stock market experienced significant volatility today.
+Python is a popular programming language for data science.
+Climate change is causing more frequent extreme weather events.
+The human brain contains approximately 86 billion neurons.
+Coffee is one of the most popular beverages in the world.
+Quantum computing uses qubits instead of classical bits.</textarea>
+
+      <div class="search-query-row">
+        <input class="search-query-input" id="searchQuery" type="text" placeholder="Enter a search query…" value="artificial intelligence and data">
+        <button class="btn btn-primary" id="searchBtn" disabled style="white-space:nowrap">Search</button>
+      </div>
+
+      <div id="searchResults"></div>
+    </div>
+
+    <!-- TAB: PCA Cluster Visualization -->
+    <div class="tab-pane" id="tab-pca">
+      <div class="sidebar-label" style="margin-bottom:4px">Sentences (5–12, one per line)</div>
+      <textarea class="pca-textarea" id="pcaSentences">I love programming in Python.
+JavaScript is great for web development.
+Machine learning is transforming industries.
+Deep learning requires a lot of data.
+Paris is a beautiful city in France.
+Rome is famous for its history and culture.
+Tokyo is a bustling metropolis in Japan.
+The ocean is deep and full of life.
+Mountains provide stunning views and fresh air.
+Cats are independent and mysterious animals.</textarea>
+
+      <button class="btn btn-primary" id="pcaBtn" disabled style="margin-top:8px;margin-bottom:12px">Compute &amp; Visualize</button>
+
+      <canvas id="pcaCanvas" width="600" height="400" style="max-width:100%"></canvas>
+      <div class="pca-legend" id="pcaLegend"></div>
+    </div>
+
+  </main>
+</div>
+
+<script type="module">
+import { pipeline } from
+  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let extractor  = null;
+let embedCount = 0;
+
+const $ = id => document.getElementById(id);
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    $("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ── Load model ─────────────────────────────────────────────────────────────
+$("loadBtn").addEventListener("click", loadModel);
+
+async function loadModel() {
+  $("loadBtn").disabled = true;
+  $("progressSection").style.display = "block";
+  setStatus("loading", "Downloading model…");
+
+  try {
+    extractor = await pipeline(
+      "feature-extraction",
+      "Xenova/all-MiniLM-L6-v2",
+      {
+        progress_callback: (p) => {
+          if (p.status === "progress" && p.total) {
+            const pct = Math.round(p.loaded / p.total * 100);
+            $("progressFill").style.width = pct + "%";
+            $("progressLabel").textContent = `${p.file || "model"} — ${pct}%`;
+          }
+        }
+      }
+    );
+    $("progressFill").style.width = "100%";
+    $("progressLabel").textContent = "Model loaded ✓";
+    setStatus("ready", "Ready — all-MiniLM-L6-v2 loaded");
+    $("simBtn").disabled    = false;
+    $("searchBtn").disabled = false;
+    $("pcaBtn").disabled    = false;
+  } catch (err) {
+    setStatus("error", "Failed: " + err.message);
+    console.error(err);
+  } finally {
+    $("loadBtn").disabled = false;
+  }
+}
+
+// ── Core: embed ────────────────────────────────────────────────────────────
+async function embed(text) {
+  const t0 = performance.now();
+  const out = await extractor(text, { pooling: "mean", normalize: true });
+  const vec  = Array.from(out.data);
+  embedCount++;
+  $("statCount").textContent = embedCount;
+  $("statTime").textContent  = (performance.now() - t0).toFixed(1) + " ms";
+  return vec;
+}
+
+async function embedBatch(texts) {
+  const vecs = [];
+  for (const t of texts) vecs.push(await embed(t));
+  return vecs;
+}
+
+function cosineSimilarity(a, b) {
+  // Vectors are already normalized; dot product = cosine similarity
+  return a.reduce((s, ai, i) => s + ai * b[i], 0);
+}
+
+// ── Tab 1: Similarity ──────────────────────────────────────────────────────
+$("simBtn").addEventListener("click", computeSimilarity);
+
+document.querySelectorAll(".example-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $("sentA").value = btn.dataset.a;
+    $("sentB").value = btn.dataset.b;
+    if (extractor) computeSimilarity();
+  });
+});
+
+async function computeSimilarity() {
+  if (!extractor) return;
+  const a = $("sentA").value.trim();
+  const b = $("sentB").value.trim();
+  if (!a || !b) return;
+
+  setStatus("generating", "Computing…");
+  $("simBtn").disabled = true;
+
+  try {
+    const [va, vb] = await embedBatch([a, b]);
+    const sim = Math.max(0, Math.min(1, cosineSimilarity(va, vb)));
+    const pct = (sim * 100).toFixed(1);
+
+    $("simResult").style.display = "block";
+    $("simScore").textContent = sim.toFixed(3);
+    $("simFill").style.width  = pct + "%";
+    $("simFill").style.background = sim > 0.7 ? "var(--green)" : sim > 0.4 ? "var(--yellow)" : "var(--red)";
+
+    let verdict = "Very similar";
+    if (sim < 0.3) verdict = "Very different";
+    else if (sim < 0.5) verdict = "Somewhat different";
+    else if (sim < 0.7) verdict = "Moderately similar";
+    $("simVerdict").textContent = verdict;
+
+    setStatus("ready", "Done");
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  }
+  $("simBtn").disabled = false;
+}
+
+// ── Tab 2: Semantic Search ─────────────────────────────────────────────────
+$("searchBtn").addEventListener("click", runSearch);
+
+async function runSearch() {
+  if (!extractor) return;
+  const docs  = $("searchDocs").value.split("\n").map(s => s.trim()).filter(Boolean);
+  const query = $("searchQuery").value.trim();
+  if (!docs.length || !query) return;
+
+  setStatus("generating", "Embedding documents…");
+  $("searchBtn").disabled = true;
+
+  try {
+    const allTexts = [query, ...docs];
+    const allVecs  = await embedBatch(allTexts);
+    const qVec     = allVecs[0];
+    const docVecs  = allVecs.slice(1);
+
+    const scored = docs.map((doc, i) => ({
+      text:  doc,
+      score: Math.max(0, cosineSimilarity(qVec, docVecs[i]))
+    }));
+    scored.sort((a, b) => b.score - a.score);
+
+    const container = $("searchResults");
+    container.innerHTML = `<div class="sidebar-label" style="margin-bottom:8px">Results (ranked by semantic similarity)</div>`;
+
+    scored.forEach((item, i) => {
+      const div = document.createElement("div");
+      div.className = "search-result-item";
+      const color = item.score > 0.5 ? "var(--green)" : item.score > 0.3 ? "var(--yellow)" : "var(--text-dim)";
+      div.innerHTML = `
+        <div class="result-rank">${i + 1}</div>
+        <div style="flex:1">
+          <div class="result-text">${escHtml(item.text)}</div>
+          <div class="result-score-bar">
+            <div class="result-score-fill" style="width:${(item.score * 100).toFixed(1)}%;background:${color}"></div>
+          </div>
+        </div>
+        <div class="result-score" style="color:${color}">${item.score.toFixed(3)}</div>`;
+      container.appendChild(div);
+    });
+
+    setStatus("ready", "Search complete");
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  }
+  $("searchBtn").disabled = false;
+}
+
+// ── Tab 3: PCA ─────────────────────────────────────────────────────────────
+$("pcaBtn").addEventListener("click", runPCA);
+
+async function runPCA() {
+  if (!extractor) return;
+  const sentences = $("pcaSentences").value.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 12);
+  if (sentences.length < 3) { alert("Enter at least 3 sentences."); return; }
+
+  setStatus("generating", "Computing embeddings for PCA…");
+  $("pcaBtn").disabled = true;
+
+  try {
+    const vecs = await embedBatch(sentences);
+    const pts  = pca2d(vecs);
+    drawPCA(pts, sentences);
+    setStatus("ready", "PCA visualization complete");
+  } catch (err) {
+    setStatus("error", err.message);
+    console.error(err);
+  }
+  $("pcaBtn").disabled = false;
+}
+
+// ── Simple 2-component PCA ─────────────────────────────────────────────────
+function pca2d(vectors) {
+  const n = vectors.length;
+  const d = vectors[0].length;
+
+  // Center data
+  const mean = new Array(d).fill(0);
+  for (const v of vectors) for (let j = 0; j < d; j++) mean[j] += v[j] / n;
+  const centered = vectors.map(v => v.map((x, j) => x - mean[j]));
+
+  // Covariance matrix (d×d) is too big. Instead use Gram matrix (n×n)
+  // Then extract top 2 PCs via power iteration on nxn Gram matrix
+  const G = [];
+  for (let i = 0; i < n; i++) {
+    G[i] = [];
+    for (let k = 0; k < n; k++) {
+      G[i][k] = centered[i].reduce((s, x, j) => s + x * centered[k][j], 0);
+    }
+  }
+
+  function powerIter(M, iters = 200) {
+    let v = new Array(n).fill(0).map((_, i) => i === 0 ? 1 : Math.random() - 0.5);
+    for (let iter = 0; iter < iters; iter++) {
+      const Mv = M.map(row => row.reduce((s, x, j) => s + x * v[j], 0));
+      const norm = Math.sqrt(Mv.reduce((s, x) => s + x * x, 0)) || 1;
+      v = Mv.map(x => x / norm);
+    }
+    const eigenval = v.reduce((s, x, i) => s + x * M[i].reduce((ss, y, j) => ss + y * v[j], 0), 0);
+    return { vec: v, val: eigenval };
+  }
+
+  const { vec: e1, val: v1 } = powerIter(G);
+
+  // Deflate
+  const G2 = G.map((row, i) => row.map((x, j) => x - v1 * e1[i] * e1[j]));
+  const { vec: e2 } = powerIter(G2);
+
+  // Project: coordinate i along PC k = dot(centered[i], u_k)
+  // But we have Gram eigenvectors; project as: x_i · u_k = sum_j (G_ij * e_k_j) / lambda_k
+  // Simpler: PC scores = M_centered @ e_k but e_k is in sample space
+  // Use: score_i = sum_j e_k_j * centered[j] . centered[i] / lambda  (Gram relationship)
+  // Actually just use sample eigenvectors via cenered · gram_evec approach
+  function sampleToFeature(ev) {
+    // u = X^T e / ||X^T e||
+    const u = new Array(d).fill(0);
+    for (let i = 0; i < n; i++)
+      for (let j = 0; j < d; j++)
+        u[j] += ev[i] * centered[i][j];
+    const nm = Math.sqrt(u.reduce((s, x) => s + x * x, 0)) || 1;
+    return u.map(x => x / nm);
+  }
+
+  const u1 = sampleToFeature(e1);
+  const u2 = sampleToFeature(e2);
+
+  return centered.map(v => ({
+    x: v.reduce((s, x, j) => s + x * u1[j], 0),
+    y: v.reduce((s, x, j) => s + x * u2[j], 0),
+  }));
+}
+
+// ── Draw PCA scatter ───────────────────────────────────────────────────────
+const POINT_COLORS = [
+  "#58a6ff","#3fb950","#f0883e","#d2a8ff","#ff7b72",
+  "#ffa198","#7ee787","#a5d6ff","#ffa657","#bc8cff",
+  "#e3b341","#56d364"
+];
+
+function drawPCA(points, labels) {
+  const canvas = $("pcaCanvas");
+  const ctx    = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const pad = 48;
+
+  const xs = points.map(p => p.x), ys = points.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const rangeX = (maxX - minX) || 1, rangeY = (maxY - minY) || 1;
+
+  function toCanvas(x, y) {
+    return {
+      cx: pad + ((x - minX) / rangeX) * (W - pad * 2),
+      cy: H - pad - ((y - minY) / rangeY) * (H - pad * 2),
+    };
+  }
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--bg-card2").trim() || "#1c2128";
+  ctx.fillRect(0, 0, W, H);
+
+  // Axes
+  ctx.strokeStyle = "#30363d";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const origin = toCanvas(0, 0);
+  ctx.moveTo(pad, H / 2); ctx.lineTo(W - pad, H / 2);
+  ctx.moveTo(W / 2, pad); ctx.lineTo(W / 2, H - pad);
+  ctx.stroke();
+
+  // Points + labels
+  points.forEach((p, i) => {
+    const { cx, cy } = toCanvas(p.x, p.y);
+    const color = POINT_COLORS[i % POINT_COLORS.length];
+
+    // Point
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = "#0d1117";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Label
+    ctx.font = "11px -apple-system, sans-serif";
+    ctx.fillStyle = "#c9d1d9";
+    const shortLabel = labels[i].length > 28 ? labels[i].slice(0, 25) + "…" : labels[i];
+    const textX = cx + 10, textY = cy + 4;
+    // Background for readability
+    const tw = ctx.measureText(shortLabel).width;
+    ctx.fillStyle = "rgba(13,17,23,.7)";
+    ctx.fillRect(textX - 2, textY - 11, tw + 4, 15);
+    ctx.fillStyle = "#c9d1d9";
+    ctx.fillText(shortLabel, textX, textY);
+  });
+
+  // Legend
+  const legend = $("pcaLegend");
+  legend.innerHTML = "";
+  labels.forEach((lbl, i) => {
+    const item = document.createElement("div");
+    item.className = "pca-legend-item";
+    item.innerHTML = `<div class="pca-legend-dot" style="background:${POINT_COLORS[i % POINT_COLORS.length]}"></div><span>${escHtml(lbl.slice(0, 30))}</span>`;
+    legend.appendChild(item);
+  });
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function setStatus(type, text) {
+  $("statusDot").className   = "status-dot " + type;
+  $("statusText").textContent = text;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+</script>
+</body>
+</html>

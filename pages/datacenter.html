@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datacenter &amp; Cluster AI Models — AI Capabilities Catalog</title>
+  <meta name="description" content="Maximum capability models requiring GPU clusters. DeepSeek R1, DeepSeek V3, Qwen3 235B, Falcon 180B. Infrastructure guides for A100, H100, multi-node. Cloud providers included.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-icon">⬡</span> AI Capabilities
+      </a>
+      <ul class="nav-links">
+        <li><a href="../index.html" class="nav-link">Home</a></li>
+        <li><a href="open-source.html" class="nav-link">Open Source</a></li>
+        <li><a href="proprietary.html" class="nav-link">Proprietary</a></li>
+        <li><a href="mobile.html" class="nav-link">Mobile</a></li>
+        <li><a href="desktop.html" class="nav-link">Desktop</a></li>
+        <li><a href="datacenter.html" class="nav-link active">Datacenter</a></li>
+        <li><a href="agi-roadmap.html" class="nav-link">AGI Roadmap</a></li>
+        <span class="nav-demos-label">Demos</span>
+        <li><a href="../demos/webllm/index.html" class="nav-link">WebLLM</a></li>
+        <li><a href="../demos/transformers-js/index.html" class="nav-link">Transformers.js</a></li>
+        <li><a href="../demos/onnx-web/index.html" class="nav-link">ONNX Web</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <header class="hero">
+    <div class="page-container">
+      <div class="hero-badge">GPU Clusters &amp; Servers</div>
+      <h1 class="hero-title">
+        <span class="text-gradient">Datacenter &amp; Cluster Models</span>
+      </h1>
+      <p class="hero-subtitle">
+        Maximum capability open-source models requiring GPU clusters or high-memory servers.
+        These are the frontier models — rivaling or exceeding proprietary APIs when self-hosted.
+      </p>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- MoE explanation -->
+    <section class="section">
+      <div class="info-box">
+        <strong>Mixture of Experts (MoE) explained:</strong> MoE models like DeepSeek R1 (671B) and Qwen3 235B-A22B
+        contain hundreds of billions of parameters, but only activate a small fraction per token during inference.
+        DeepSeek R1 activates only ~37B of its 671B parameters per forward pass. This means the
+        <em>effective compute</em> cost is much lower than the raw parameter count suggests — but you still
+        need enough RAM/VRAM to load all parameters into memory. FP8 quantization and offloading strategies
+        can further reduce the hardware footprint.
+      </div>
+    </section>
+
+    <!-- Infrastructure guide -->
+    <section class="section">
+      <h2 class="section-title">GPU Infrastructure Guide</h2>
+      <div class="table-wrapper">
+        <table class="tier-table">
+          <thead>
+            <tr>
+              <th>Hardware Configuration</th>
+              <th>VRAM Total</th>
+              <th>Models That Fit</th>
+              <th>Speed (tok/s)</th>
+              <th>Estimated Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1× A100 80GB SXM</td>
+              <td>80 GB</td>
+              <td>Falcon 180B Q4, Llama 3.3 70B FP16, Qwen2.5 72B FP16</td>
+              <td>40–80</td>
+              <td>~$10K new / ~$3/hr cloud</td>
+            </tr>
+            <tr>
+              <td>2× A100 80GB</td>
+              <td>160 GB</td>
+              <td>DeepSeek R1 Q4 (tight), Qwen3 235B-A22B Q4</td>
+              <td>20–50</td>
+              <td>~$20K / ~$6/hr cloud</td>
+            </tr>
+            <tr>
+              <td>4× A100 80GB</td>
+              <td>320 GB</td>
+              <td>DeepSeek R1 Q4, DeepSeek V3 Q4, Qwen3 235B Q8</td>
+              <td>30–70 (tensor parallelism)</td>
+              <td>~$40K / ~$12/hr cloud</td>
+            </tr>
+            <tr>
+              <td>8× A100 80GB (single node)</td>
+              <td>640 GB</td>
+              <td>DeepSeek R1 FP8, DeepSeek V3 FP8, Qwen3 235B FP16</td>
+              <td>50–100</td>
+              <td>~$80K / ~$25/hr cloud</td>
+            </tr>
+            <tr>
+              <td>8× H100 80GB SXM5</td>
+              <td>640 GB HBM3</td>
+              <td>All models, highest throughput</td>
+              <td>100–200+</td>
+              <td>~$250K / ~$35/hr cloud</td>
+            </tr>
+            <tr>
+              <td>Multi-node (16–64× H100)</td>
+              <td>1.3 TB – 5 TB</td>
+              <td>All models in FP16/BF16. Future trillion-param models.</td>
+              <td>200–1000+</td>
+              <td>Varies — cloud only for most</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Cloud providers -->
+    <section class="section">
+      <h2 class="section-title">Run Without Owning Hardware — Cloud Providers</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">☁</div>
+          <div class="feature-card-title">AWS Bedrock</div>
+          <div class="feature-card-desc">
+            Managed API for Llama 3, Mistral, and other open models. Serverless — pay per token.
+            No GPU management. HIPAA, SOC2. Great for enterprise compliance.
+            <a href="https://aws.amazon.com/bedrock/" target="_blank" rel="noopener">aws.amazon.com/bedrock</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔷</div>
+          <div class="feature-card-title">Azure AI</div>
+          <div class="feature-card-desc">
+            Model catalog with Llama, Phi, Mistral as serverless endpoints. Deep Microsoft
+            enterprise integration. Azure OpenAI for proprietary models alongside open source.
+            <a href="https://ai.azure.com" target="_blank" rel="noopener">ai.azure.com</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🟡</div>
+          <div class="feature-card-title">Google Cloud Vertex AI</div>
+          <div class="feature-card-desc">
+            Model Garden with Llama, Gemma (native), Mistral. TPU and GPU backends.
+            Integrates with GCP data and ML pipelines. Good for Gemma and Google ecosystem users.
+            <a href="https://cloud.google.com/vertex-ai" target="_blank" rel="noopener">cloud.google.com/vertex-ai</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🤝</div>
+          <div class="feature-card-title">Together AI</div>
+          <div class="feature-card-desc">
+            Developer-friendly open-model API. DeepSeek, Llama, Qwen, Mistral, and more.
+            Very competitive per-token pricing. Function calling support. Popular for prototyping.
+            <a href="https://together.ai" target="_blank" rel="noopener">together.ai</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔁</div>
+          <div class="feature-card-title">Replicate</div>
+          <div class="feature-card-desc">
+            Run any open model via a simple REST API. Pay per second. Supports custom
+            fine-tuned models too. Good for image generation (Flux, SDXL) alongside LLMs.
+            <a href="https://replicate.com" target="_blank" rel="noopener">replicate.com</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔥</div>
+          <div class="feature-card-title">Fireworks AI</div>
+          <div class="feature-card-desc">
+            Ultra-fast inference optimized for throughput. Speculative decoding. DeepSeek R1,
+            Llama, Qwen, Mistral. Competitive pricing. JSON mode and function calling.
+            <a href="https://fireworks.ai" target="_blank" rel="noopener">fireworks.ai</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Serving frameworks -->
+    <section class="section">
+      <h2 class="section-title">Self-Hosted Serving Frameworks</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-icon">⚡</div>
+          <div class="feature-card-title">vLLM</div>
+          <div class="feature-card-desc">
+            Gold standard for NVIDIA GPU serving. PagedAttention KV cache, continuous batching,
+            tensor parallelism across multiple GPUs, OpenAI-compatible API.
+            <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🔗</div>
+          <div class="feature-card-title">SGLang</div>
+          <div class="feature-card-desc">
+            Structured generation language. RadixAttention for KV cache reuse.
+            Faster than vLLM on many benchmarks, especially for DeepSeek models.
+            <a href="https://github.com/sgl-project/sglang" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-icon">🏗</div>
+          <div class="feature-card-title">llama.cpp Server</div>
+          <div class="feature-card-desc">
+            GGUF-based server mode. CPU offloading for models too large for VRAM.
+            Suitable when mixing CPU and GPU memory. GGUF quantization reduces footprint.
+            <a href="https://github.com/ggerganov/llama.cpp" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <h2 class="section-title">Datacenter Model Stats</h2>
+      <div id="stats"></div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section">
+      <h2 class="section-title">Filter &amp; Search</h2>
+      <div id="filters"></div>
+    </section>
+
+    <!-- Table -->
+    <section class="section">
+      <h2 class="section-title">Datacenter Model Catalog</h2>
+      <div id="catalog"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>
+      AI Capabilities Catalog &mdash; Datacenter &amp; Cluster Models &mdash;
+      <a href="https://github.com/bpupadhyaya/ai-capabilities" target="_blank" rel="noopener">GitHub</a> &mdash;
+      MIT License
+    </p>
+    <p style="margin-top:8px">Hardware prices and cloud rates are approximate. Verify current pricing with vendors.</p>
+  </footer>
+
+  <script src="../assets/js/catalog.js"></script>
+  <script>
+    Catalog.initPage({
+      jsonPath: '../data/models.json',
+      statsContainerId: 'stats',
+      tableContainerId: 'catalog',
+      filterContainerId: 'filters',
+      defaultFilters: { deployment: ['datacenter'] },
+      columns: [
+        'name','params','moe','vram','ram_min','storage_q4','context',
+        'architecture','quantizations','inference_engines','license','links'
+      ],
+      pageTitle: 'Datacenter & Cluster Models'
+    });
+  </script>
+</body>
+</html>

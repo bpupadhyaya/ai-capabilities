@@ -196,13 +196,13 @@
     </div>
     <div class="cache-location-box" id="cacheLocationBox">
       <strong>Chrome · macOS</strong>
-      <code>~/Library/Application Support/Google/Chrome/Default/Service Worker/CacheStorage/</code>
+      <code>~/Library/Application Support/Google/Chrome/Default/Service Worker/CacheStorage/<span id="cacheMacPath">…</span></code>
       <strong>Chrome · Windows</strong>
-      <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Service Worker\CacheStorage\</code>
+      <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Service Worker\CacheStorage\<span id="cacheWinPath">…</span></code>
       <strong>Firefox · macOS</strong>
-      <code>~/Library/Caches/Firefox/Profiles/&lt;profile&gt;/cache2/</code>
-      Files are stored with hashed names — use DevTools to see model entries by name:<br>
-      <em>F12 → Application → Cache Storage → mlc-ai/web-llm entries</em><br><br>
+      <code>~/Library/Caches/Firefox/Profiles/&lt;profile&gt;/cache2/<span id="cacheFxPath">…</span></code>
+      On-disk folder names are hashed — verify via DevTools:<br>
+      <em>F12 → Application → Cache Storage → look for "<span id="cacheDevtoolsName">…</span>"</em><br><br>
       <strong>To delete:</strong> DevTools → Application → Storage → Clear site data &nbsp;|&nbsp; or Chrome Settings → Privacy → Site settings → [this site] → Delete data
     </div>
 
@@ -563,7 +563,17 @@ function resetStats() {
   });
 }
 
-// ── Cache location toggle ──────────────────────────────────────────────────
+// ── Cache location toggle + dynamic model path ─────────────────────────────
+function updateCachePaths(modelId) {
+  const slug = modelId + "/";
+  $("cacheMacPath").textContent  = slug;
+  $("cacheWinPath").textContent  = slug;
+  $("cacheFxPath").textContent   = slug;
+  $("cacheDevtoolsName").textContent = modelId;
+}
+modelSelect.addEventListener("change", () => updateCachePaths(modelSelect.value));
+updateCachePaths(modelSelect.value);
+
 $("cacheWhereLink").addEventListener("click", () => {
   const box = $("cacheLocationBox");
   box.classList.toggle("open");

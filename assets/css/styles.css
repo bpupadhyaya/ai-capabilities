@@ -1250,7 +1250,7 @@ input[type="range"]::-webkit-slider-thumb {
 .nav-dropdown-menu {
   display: none;
   position: absolute;
-  top: calc(100% + 8px);
+  top: 100%;
   left: 0;
   background: var(--surface-2);
   border: 1px solid var(--border-2);
@@ -1259,6 +1259,13 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 6px 0;
   z-index: 999;
   box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  /* Invisible top padding bridges the gap between toggle and menu */
+}
+.nav-dropdown-menu::before {
+  content: '';
+  display: block;
+  height: 8px;
+  margin-top: -8px;
 }
 .nav-dropdown:hover .nav-dropdown-menu,
 .nav-dropdown:focus-within .nav-dropdown-menu {

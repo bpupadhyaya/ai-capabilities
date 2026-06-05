@@ -1231,3 +1231,48 @@ input[type="range"]::-webkit-slider-thumb {
   color: var(--yellow);
   border: 1px solid rgba(210,153,34,.25);
 }
+
+/* ---------- Nav dropdown (Pages menu in demo navbars) ---------- */
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.nav-dropdown-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.nav-dropdown-toggle::after {
+  content: " ▾";
+  font-size: .7rem;
+  opacity: .7;
+}
+.nav-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  min-width: 180px;
+  padding: 6px 0;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu {
+  display: block;
+}
+.nav-dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: .875rem;
+  transition: background .15s, color .15s;
+}
+.nav-dropdown-item:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}

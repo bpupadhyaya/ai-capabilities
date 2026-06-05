@@ -196,12 +196,14 @@
     </div>
     <div class="cache-location-box" id="cacheLocationBox">
       <strong>Chrome · macOS</strong>
-      <code>~/Library/Application Support/Google/Chrome/Default/</code>
+      <code>~/Library/Application Support/Google/Chrome/Default/Service Worker/CacheStorage/</code>
       <strong>Chrome · Windows</strong>
-      <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\</code>
+      <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Service Worker\CacheStorage\</code>
       <strong>Firefox · macOS</strong>
-      <code>~/Library/Caches/Firefox/Profiles/&lt;profile&gt;/</code>
-      <strong>To delete:</strong> Chrome Settings → Privacy → Site settings → [this site] → Delete data &nbsp;|&nbsp; or DevTools → Application → Storage → Clear site data
+      <code>~/Library/Caches/Firefox/Profiles/&lt;profile&gt;/cache2/</code>
+      Files are stored with hashed names — use DevTools to see model entries by name:<br>
+      <em>F12 → Application → Cache Storage → mlc-ai/web-llm entries</em><br><br>
+      <strong>To delete:</strong> DevTools → Application → Storage → Clear site data &nbsp;|&nbsp; or Chrome Settings → Privacy → Site settings → [this site] → Delete data
     </div>
 
     <hr class="sidebar-divider">

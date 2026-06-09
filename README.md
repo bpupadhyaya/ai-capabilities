@@ -1,9 +1,9 @@
 # AI Capabilities Catalog
 
-[![Open Source](https://img.shields.io/badge/open--source-models-3fb950?style=flat-square)](pages/open-source.html)
+[![Open Source](https://img.shields.io/badge/open--source-models-3fb950?style=flat-square)](https://equalinformation.com/ai-capabilities/pages/open-source.html)
 [![License: MIT](https://img.shields.io/badge/license-MIT-58a6ff?style=flat-square)](LICENSE)
 [![Models](https://img.shields.io/badge/models-35%2B-bc8cff?style=flat-square)](data/models.json)
-[![WebGPU Demo](https://img.shields.io/badge/demo-WebGPU-ffa657?style=flat-square)](demos/webllm/index.html)
+[![WebGPU Demo](https://img.shields.io/badge/demo-WebGPU-ffa657?style=flat-square)](https://equalinformation.com/ai-capabilities/demos/webllm/index.html)
 
 The most exhaustive open reference for AI models — from 22M embedding models running on your
 phone to 671B reasoning giants requiring GPU clusters. Built to accelerate the path to on-device AGI.
@@ -30,16 +30,16 @@ quantization formats available, and whether it can operate fully offline.
 
 | Page | Description |
 |---|---|
-| [Home / Full Catalog](index.html) | All models, all filters, stats overview |
-| [Open Source Models](pages/open-source.html) | Free to download, run, and modify |
-| [Proprietary Models](pages/proprietary.html) | Commercial APIs: GPT-4o, Claude, Gemini, Grok |
-| [Mobile Models](pages/mobile.html) | LLMs proven on smartphones and edge devices |
-| [Desktop Models](pages/desktop.html) | Personal computer models with hardware guide |
-| [Datacenter Models](pages/datacenter.html) | GPU cluster models: DeepSeek R1, Qwen3 235B |
-| [AGI Roadmap](pages/agi-roadmap.html) | Capability table, pipeline architecture, gaps |
-| [WebLLM Demo](demos/webllm/index.html) | Run LLMs in your browser via WebGPU |
-| [Transformers.js Demo](demos/transformers-js/index.html) | NLP tasks in-browser, no install |
-| [ONNX Web Demo](demos/onnx-web/index.html) | ONNX Runtime in the browser |
+| [Home / Full Catalog](https://equalinformation.com/ai-capabilities/) | All models, all filters, stats overview |
+| [Open Source Models](https://equalinformation.com/ai-capabilities/pages/open-source.html) | Free to download, run, and modify |
+| [Proprietary Models](https://equalinformation.com/ai-capabilities/pages/proprietary.html) | Commercial APIs: GPT-4o, Claude, Gemini, Grok |
+| [Mobile Models](https://equalinformation.com/ai-capabilities/pages/mobile.html) | LLMs proven on smartphones and edge devices |
+| [Desktop Models](https://equalinformation.com/ai-capabilities/pages/desktop.html) | Personal computer models with hardware guide |
+| [Datacenter Models](https://equalinformation.com/ai-capabilities/pages/datacenter.html) | GPU cluster models: DeepSeek R1, Qwen3 235B |
+| [AGI Roadmap](https://equalinformation.com/ai-capabilities/pages/agi-roadmap.html) | Capability table, pipeline architecture, gaps |
+| [WebLLM Demo](https://equalinformation.com/ai-capabilities/demos/webllm/index.html) | Run LLMs in your browser via WebGPU |
+| [Transformers.js Demo](https://equalinformation.com/ai-capabilities/demos/transformers-js/index.html) | NLP tasks in-browser, no install |
+| [ONNX Web Demo](https://equalinformation.com/ai-capabilities/demos/onnx-web/index.html) | ONNX Runtime in the browser |
 
 ---
 
